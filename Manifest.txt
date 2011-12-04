@@ -1,0 +1,8 @@
+.autotest
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/extra_loop
+lib/extra_loop.rb
+test/test_extra_loop.rb
