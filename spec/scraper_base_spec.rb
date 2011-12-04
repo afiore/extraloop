@@ -1,9 +1,14 @@
 require 'helpers/spec_helper'
 
 describe ScraperBase do
+  before do
+    @fixture_doc = File.open("fixtures/doc.html", 'r') do |file|
+      file.read
+    end
+  end
 
   before(:each) do
-    @scraper = ScraperBase.new("http://example.com")
+    @scraper = ScraperBase.new("http://localhost/fixture")
   end
 
   describe "#loop_on" do
@@ -15,5 +20,81 @@ describe ScraperBase do
     subject { @scraper.extract("fieldname", "bla.bla") }
     it { should eql(@scraper) }
   end
+
+  describe "#set_hook" do
+    subject { @scraper.set_hook(:after, proc {}) }
+    it { should eql(@scraper)}
+  end
+
+  describe "#set_hook" do
+    it "should raise exception if no proc is provided" do
+      expect { @scraper.set_hook(:after, :method) }.to raise_exception(ScraperBase::Exceptions::HookArgumentError)
+    end
+  end
+
+  context "single url, no options provided (async => false)" do
+    describe "#run" do
+      before do
+        @url = "http://localhost/fixture"
+        @results = []
+
+        @hydra = Typhoeus::Hydra.new
+        stub(Typhoeus::Hydra).new { @hydra }
+
+        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
+
+        stub.proxy(Typhoeus::Request).new(@url, anything) do |request|
+          @hydra.stub(:get, @url).and_return(@response)
+          request
+        end
+
+        @scraper = ScraperBase.new(@url).
+          loop_on("ul li.file a").
+            extract(:url, :href).
+            extract(:filename).
+          set_hook(:on_data, proc { |records| @results=records })
+      end
+
+
+      it "Should handle response" do
+        @scraper.run
+        @results.should_not be_empty
+        @results.all? { |record| record.extracted_at && record.url && record.filename }.should be_true
+      end
+    end
+  end
+
+  context "multiple urls, with options (async => true)" do
+    describe "#run" do
+      before do
+        @url = "http://localhost/fixture"
+        @results = []
+
+        @hydra = Typhoeus::Hydra.new
+        stub(Typhoeus::Hydra).new { @hydra }
+
+        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
+
+        stub.proxy(Typhoeus::Request).new(@url, anything) do |request|
+          @hydra.stub(:get, @url).and_return(@response)
+          request
+        end
+
+        @scraper = ScraperBase.new(@url).
+          loop_on("ul li.file a").
+            extract(:url, :href).
+            extract(:filename).
+          set_hook(:on_data, proc { |records| @results=records })
+      end
+
+
+      it "Should handle response" do
+        @scraper.run
+        @results.should_not be_empty
+        @results.all? { |record| record.extracted_at && record.url && record.filename }.should be_true
+      end
+    end
+  end
+
 
 end

@@ -92,11 +92,27 @@ describe Extractor do
     end
   end
 
-  context "when neither block nor selector are provided" do
-    describe "#new" do
-      it "raise exception" do
-        expect { Extractor.new(:anchor) }.to raise_exception(Extractor::Exceptions::WrongArgumentError)
-      end
+  context "when only an attribute is provided" do
+    before do
+      input = html
+      @extractor = Extractor.new(:url, :href)
+      @node = Nokogiri::HTML('<a href="hello-world">Hello</a>').at_css("a")
+    end
+    describe "#extract_field" do
+      subject { @extractor.extract_field(@node) }
+      it { should eql("hello-world") }
+    end
+  end
+
+  context "when nothing but a field name is provided" do
+    before do
+      input = html
+      @extractor = Extractor.new(:url)
+      @node = Nokogiri::HTML('<a href="hello-world">Hello</a>').at_css("a")
+    end
+    describe "#extract_field" do
+      subject { @extractor.extract_field(@node) }
+      it { should eql("Hello") }
     end
   end
 
@@ -110,7 +126,6 @@ describe Extractor do
 
       subject { @extractor.extract_list(@node) }
       it { subject.should have(3).items }
-
     end
 
     context "block provided" do

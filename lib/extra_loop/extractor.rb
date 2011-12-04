@@ -22,25 +22,26 @@ class Extractor
 
   def initialize(field_name, *args)
     @field_name = field_name
-    @selector, @attribute = *args.select { |arg| arg.is_a?(String) or arg.is_a?(Symbol) }
+    @selector = args.find { |arg| arg.is_a?(String)}
+    args.delete(@selector) if @selector
+    @attribute = args.find { |arg| arg.is_a?(String) || arg.is_a?(Symbol) }
     @callback = args.find { |arg| arg.respond_to?(:call) }
-
-    raise Exceptions::WrongArgumentError unless @selector or @attribute or @callback
     self
   end
 
   # Public: Runs the extractor against a document fragment (dom node or object).
   #
-  # node - The document fragment
+  # node   - The document fragment
+  # record - The extracted record
   #
   # Returns the text content of the element, or the output of the extractor's callback.
   #
 
-  def extract_field(node)
+  def extract_field(node, record=nil)
     target = node
     target = node.at_css(@selector)  if @selector
     target = target.attr(@attribute) if target.respond_to?(:attr) && @attribute
-    target = @callback.call(target) if @callback
+    target = @callback.call(target, record) if @callback
     #if target is still a DOM node, return its text content
     target = target.text if target.respond_to?(:text)
     target

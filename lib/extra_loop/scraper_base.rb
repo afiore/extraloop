@@ -1,10 +1,23 @@
 class ScraperBase
   module Exceptions
-    class HookError < StandardError
+    class HookArgumentError < StandardError
     end
   end
 
   attr_reader :results
+
+  #
+  # Public: Initalizes a web scraper.
+  #
+  # urls      - One or several urls.
+  # arguments - Hash of arguments to be passed to Typhoeus HTTP client (optional).
+  # options   - Hash of scraper options
+  #
+  #   async : whether the scraper should issue HTTP requests in series or in parallel (defaults to false).
+  #
+  #
+  # Returns itself.
+  #
 
   def initialize(urls, arguments = {}, options = {})
     @urls = Array(urls)
@@ -16,7 +29,7 @@ class ScraperBase
 
     @options = OpenStruct.new
     @options.marshal_load({
-      :async => false
+      :async  => false
     }.merge(options))
 
     @storage = nil
@@ -40,7 +53,7 @@ class ScraperBase
   #end
 
   def set_hook(hookname, handler)
-    raise Exceptions::HookError "handler must be a callable proc" unless handler.respond_to?(:call)
+    raise Exceptions::HookArgumentError.new "handler must be a callable proc" unless handler.respond_to?(:call)
     @hooks[hookname.to_sym] = handler
     self
   end
@@ -89,13 +102,16 @@ class ScraperBase
     @urls.each do |url|
       issue_request(url)
 
+      # if the scraper is asynchronous start processing the Hydra HTTP queue 
+      # only after that the last urls has been appended to the queue (see #issue_request).
+      #
+      #
+      #
       if @options.async
         if url == @urls.last
-          puts "calling Hydra#run"
           @hydra.run
         end
       else
-        puts "calling hydra#run"
         @hydra.run
       end
     end
@@ -107,18 +123,8 @@ class ScraperBase
     @hooks[hook].call(*arguments) if @hooks.has_key?(hook)
   end
 
-  def handle_response(response)
-    @response_count+=1
-    puts "response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last}"
-    @loop = ExtractionLoop.new(@loop_extractor, @extractors, response.body, response.effective_url)
-    @loop.run
-
-    run_hook(:on_data, [@loop.records, response.effective_url, response])
-    store_records(@loop.records) if @storage
-  end
-
   def store_records(records)
-    @storage.batch_set(@storage_collection, records.collect(&:marshal_dump))
+  #  @storage.batch_set(@storage_collection, records.collect(&:marshal_dump))
   end
 
   def issue_request(url)
@@ -138,5 +144,16 @@ class ScraperBase
     puts "==> queueing url: #{url}"
     @queued_count += 1
     @hydra.queue(request)
+  end
+
+  def handle_response(response)
+    @response_count+=1
+
+    puts "response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}"
+    @loop = ExtractionLoop.new(@loop_extractor, @extractors, response.body, @hooks)
+    @loop.run
+
+    run_hook(:on_data, [@loop.records, response.effective_url, response])
+   # store_records(@loop.records) if @storage
   end
 end
