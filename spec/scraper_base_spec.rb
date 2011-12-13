@@ -64,10 +64,14 @@ describe ScraperBase do
     end
   end
 
-  context "multiple urls, with options (async => true)" do
+  context "multiple urls (async => false)" do
     describe "#run" do
       before do
-        @url = "http://localhost/fixture"
+        @urls = [
+          "http://localhost/fixture1",
+          "http://localhost/fixture2",
+          "http://localhost/fixture3",
+        ]
         @results = []
 
         @hydra = Typhoeus::Hydra.new
@@ -75,23 +79,29 @@ describe ScraperBase do
 
         @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
 
-        stub.proxy(Typhoeus::Request).new(@url, anything) do |request|
+        stub.proxy(Typhoeus::Request).new(anything, anything) do |request|
           @hydra.stub(:get, @url).and_return(@response)
           request
         end
 
-        @scraper = ScraperBase.new(@url).
+        @scraper = ScraperBase.new(@urls).
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| @results=records })
+          set_hook(:on_data, proc { |records| records.each { |record| @results << record } })
+
+
+        @fake_loop = Object.new
+        stub(@fake_loop).run { }
+        stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
+
+        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(3) { @fake_loop  }
       end
 
 
       it "Should handle response" do
         @scraper.run
-        @results.should_not be_empty
-        @results.all? { |record| record.extracted_at && record.url && record.filename }.should be_true
+        @results.size.should eql(9)
       end
     end
   end
