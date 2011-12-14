@@ -75,6 +75,9 @@ describe ScraperBase do
         @results = []
 
         @hydra = Typhoeus::Hydra.new
+
+        #as this is a synchronous scraper, Hydra run should be called thrice
+        stub.proxy(@hydra).run.times(3)
         stub(Typhoeus::Hydra).new { @hydra }
 
         @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
@@ -106,5 +109,51 @@ describe ScraperBase do
     end
   end
 
+  context "multiple urls (async => true)" do
+    describe "#run" do
+      before do
+        @urls = [
+          "http://localhost/fixture1",
+          "http://localhost/fixture2",
+          "http://localhost/fixture3",
+          "http://localhost/fixture4",
+          "http://localhost/fixture5",
+        ]
+        @results = []
+
+        @hydra = Typhoeus::Hydra.new
+
+        #as this is an asynchronous scraper, Hydra run should be called only once
+        stub.proxy(@hydra).run.times(1)
+        stub(Typhoeus::Hydra).new { @hydra }
+
+        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
+
+        stub.proxy(Typhoeus::Request).new(anything, anything) do |request|
+          @hydra.stub(:get, @url).and_return(@response)
+          request
+        end
+
+        @scraper = ScraperBase.new(@urls, {}, {:async => true}).
+          loop_on("ul li.file a").
+            extract(:url, :href).
+            extract(:filename).
+          set_hook(:on_data, proc { |records| records.each { |record| @results << record } })
+
+
+        @fake_loop = Object.new
+        stub(@fake_loop).run { }
+        stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
+
+        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(5) { @fake_loop  }
+      end
+
+
+      it "Should handle response" do
+        @scraper.run
+        @results.size.should eql(@urls.size * 3)
+      end
+    end
+  end
 
 end

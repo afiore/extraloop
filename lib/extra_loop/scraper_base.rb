@@ -103,9 +103,7 @@ class ScraperBase
       issue_request(url)
 
       # if the scraper is asynchronous start processing the Hydra HTTP queue 
-      # only after that the last urls has been appended to the queue (see #issue_request).
-      #
-      #
+      # only after that the last url has been appended to the queue (see #issue_request).
       #
       if @options.async
         if url == @urls.last
