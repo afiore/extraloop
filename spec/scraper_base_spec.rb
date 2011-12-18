@@ -87,7 +87,7 @@ describe ScraperBase do
           request
         end
 
-        @scraper = ScraperBase.new(@urls).
+        @scraper = ScraperBase.new(@urls, :log => false).
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
@@ -134,7 +134,7 @@ describe ScraperBase do
           request
         end
 
-        @scraper = ScraperBase.new(@urls, {}, {:async => true}).
+        @scraper = ScraperBase.new(@urls, :async => true).
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
