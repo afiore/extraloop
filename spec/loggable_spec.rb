@@ -14,11 +14,9 @@ describe Loggable do
 
     subject { LoggableClass.new }
 
-
     it "should execute the class' #initialize method" do
       subject.super_called.should eql(true)
     end
-
 
     it "should respond to the #log method" do
       subject.respond_to?(:log).should be_true

@@ -1,7 +1,7 @@
 autoload :Logging,  "logging"
 
-# Decorates a class with an instance of Logging.logger and a helper method
-# to log messages.
+# Decorates a class with an instance of Logging.logger and a convenient 
+# helper method to log messages.
 
 module Loggable
   protected

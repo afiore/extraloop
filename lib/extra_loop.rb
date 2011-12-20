@@ -13,16 +13,19 @@ autoload :Typhoeus, "typhoeus"
 
 # Extraloop components
 
-autoload :Utils,          "extra_loop/utils"
-autoload :Extractor,      "extra_loop/extractor"
-autoload :ExtractionLoop, "extra_loop/extraction_loop"
-autoload :ScraperBase,    "extra_loop/scraper_base"
-autoload :Loggable,       "extra_loop/loggable"
+autoload :Utils,            "extra_loop/utils"
+autoload :Extractor,        "extra_loop/extractor"
+autoload :ExtractionLoop,   "extra_loop/extraction_loop"
+autoload :ScraperBase,      "extra_loop/scraper_base"
+autoload :Loggable,         "extra_loop/loggable"
+autoload :IterativeScraper, "extra_loop/iterative_scraper"
 
-#monkey patch scraperbase with the Loggable module
+# monkey patch scraperbase with the Loggable module.
+#
+# This is the equivalent adding extra_loop/ to the path and requiring both ScraperBase and Loggable 
+#
 ScraperBase
 Loggable
-
 
 
 class ExtraLoop

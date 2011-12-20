@@ -37,7 +37,6 @@ describe ScraperBase do
       before do
         @url = "http://localhost/fixture"
         @results = []
-
         @hydra = Typhoeus::Hydra.new
         stub(Typhoeus::Hydra).new { @hydra }
 

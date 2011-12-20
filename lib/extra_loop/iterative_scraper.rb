@@ -16,7 +16,6 @@ class IterativeScraper < ScraperBase
   #
   # Examples:
   #
-  # 
   # # Iterates over the first 10 pages of Google News search result for the query 'Egypt'.
   #
   # IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt&start=:start", :log => {
@@ -26,19 +25,19 @@ class IterativeScraper < ScraperBase
   #   }).set_iteration(:start, (1..101).step(10))
   #
   # # Iterates over the first 10 pages of Google News search results for the query 'Egypt' first, and then
-  # # for the query 'Syria' using asynchronous HTTP request, and ignoring ssl certificate verification.
+  # # for the query 'Syria', issuing HTTP requests asynchronously, and ignoring ssl certificate verification.
   #
   # IterativeScraper.new([
   #     https://www.google.com/search?tbm=nws&q=Egypt&start=:start",
   #     https://www.google.com/search?tbm=nws&q=Syria&start=:start"
   #   ], {:async => true,  }, {:disable_ssl_peer_verification => true
   #
-  # }).set_iteration(:start => 0, (1..101).step(10))
+  # }).set_iteration(:start, (1..101).step(10))
   #
   # Returns itself.
   #
 
-  def initialize(urls, options = {}, arguments)
+  def initialize(urls, options = {}, arguments = {})
     super([], options, arguments)
 
     @url_patterns = Array(urls)
@@ -72,8 +71,8 @@ class IterativeScraper < ScraperBase
   #
   #  fetch_page_numbers = proc { |elements|
   #    elements.map { |a|
-  #       match = a.attr(:href).match(/p=(\d+)/)
-  #       match[1] if match && match.size > 1
+  #       a.attr(:href).match(/p=(\d+)/)
+  #       $1
   #    }.reject { |p| p == 1 }
   #  }
   #
@@ -97,9 +96,11 @@ class IterativeScraper < ScraperBase
 
   def run
     @url_patterns.each do |pattern|
-      run_iteration(pattern)
 
-      while @iteration_set.any?
+      # run an extra iteration when the iteration set has not been provided
+      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor 
+
+      while @iteration_set.at(@iteration_count)
         method = @options[:async] ? :run_iteration_async : :run_iteration
         send(method, pattern)
         @iteration_count += 1
@@ -110,6 +111,7 @@ class IterativeScraper < ScraperBase
       @response_count = 0
       @iteration_count = 0
     end
+    self
   end
 
   protected
@@ -132,21 +134,13 @@ class IterativeScraper < ScraperBase
     end
   end
 
-  # TODO: rename this to make explicit that this method is mutating @iteration_set in place.
-  #
-  #
-  # Returns a value 
-  #
-  def current_offset
-    (@iteration_set.empty?) ? self.default_offset :  @iteration_set.shift
-  end
-
   def default_offset
     @iteration_param_value or "1"
   end
 
   def run_iteration(url_pattern)
-    @urls = Array(url_pattern.gsub(":#{@iteration_param.to_s}", current_offset))
+    url = interpolate_url(url_pattern)
+    @urls = Array(url)
     run_super(:run)
   end
 
@@ -157,8 +151,10 @@ class IterativeScraper < ScraperBase
     end
   end
 
-  def interpolate_url(url, offset=nil)
-    offset ||= current_offset
+  #interpolate the url 
+
+  def interpolate_url(url)
+    offset = @iteration_set.at(@iteration_count) || default_offset
     url.gsub(":#{@iteration_param.to_s}", offset)
   end
 
@@ -173,7 +169,7 @@ class IterativeScraper < ScraperBase
   end
 
   def handle_response(response)
-    @iteration_set = extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
+    @iteration_set = Array(default_offset) + extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
     super(response)
   end
 

@@ -109,6 +109,7 @@ class ScraperBase
         @hydra.run
       end
     end
+    self
   end
 
   protected

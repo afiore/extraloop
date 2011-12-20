@@ -52,13 +52,14 @@ class Extractor
   #
   # input - a document (either as a string or as a parsed Nokogiri document)
   #
-  # Returns the list of matching document selectors
+  # Returns an array of elements matching the specified selector or function
   #
   #
 
   def extract_list(input)
-    nodes = parse(input).css(@selector)
-    if @callback then @callback.call(nodes) else nodes end
+    nodes = parse(input)
+    nodes = nodes.css(@selector) if @selector
+    @callback && @callback.call(nodes) || nodes
   end
 
   private
