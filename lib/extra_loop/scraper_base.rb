@@ -13,10 +13,11 @@ class ScraperBase
   #
   # urls      - One or several urls.
   # options   - Hash of scraper options
-  #   async        : Whether the scraper should issue HTTP requests in series or in parallel (defaults to false).
+  #   async        : Whether the scraper should issue HTTP requests in series or in parallel (set to false to suppress logging completely).
   #   log          : logging options (defaults to standard error).
-  #   log_level    : defaults to info
-  # arguments - Hash of arguments to be passed to Typhoeus HTTP client (optional).
+  #     appenders    : specifies where the log messages should be appended to (defaults to standard error).
+  #     log_level    : specifies the log level (defaults to info).
+  # arguments - Hash of arguments to be passed to the Typhoeus HTTP client (optional).
   #
   #
   #
@@ -35,8 +36,6 @@ class ScraperBase
       :async  => false
     }.merge(options)
 
-    #@storage = nil
-    #@storage_collection = nil
 
     @response_count = 0
     @queued_count = 0
@@ -48,12 +47,6 @@ class ScraperBase
     @hydra = Typhoeus::Hydra.new hydra_options
     self
   end
-
-  #def set_storage(dataset, collection)
-  #  @storage = dataset
-  #  @storage_collection = collection
-  #  self
-  #end
 
   def set_hook(hookname, handler)
     raise Exceptions::HookArgumentError.new "handler must be a callable proc" unless handler.respond_to?(:call)
@@ -124,9 +117,6 @@ class ScraperBase
     @hooks[hook].call(*arguments) if @hooks.has_key?(hook)
   end
 
-  def store_records(records)
-  #  @storage.batch_set(@storage_collection, records.collect(&:marshal_dump))
-  end
 
   def issue_request(url)
     arguments = {
@@ -155,8 +145,6 @@ class ScraperBase
     @loop.run
 
     run_hook(:on_data, [@loop.records, response.effective_url, response])
-   # store_records(@loop.records) if @storage
   end
-
 
 end
