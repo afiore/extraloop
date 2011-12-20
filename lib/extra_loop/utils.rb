@@ -15,7 +15,35 @@ module Utils
     end
   end
 
+  module URIAddition
+    # 
+    # Public
+    #
+    # Generates a hash representation of a uri's query string.
+    # 
+    # Returns a hash mapping the URL query parameters to their respective values
+    #
+    # NOTE: this is intended as a decorator method for instances of URI::HTTP.
+    #
+    # examples:
+    #
+    # URI::parse(url).extend(URIAddition).query_hash
+    #
+
+    def query_hash
+      return unless self.query
+      self.query.split("&").reduce({}) do |memo, item|
+        param, value = *item.split("=")
+        memo.merge(param.to_sym => value)
+      end
+    end
+  end
+
+
   module Support
+    def symbolize_keys(hash)
+      hash.reduce({}) { |memo, (k,v)| memo.merge(k => v) }
+    end
     #
     # Creates instance variables from a hash.
     #
@@ -31,7 +59,4 @@ module Utils
       end
     end
   end
-
-
-
 end

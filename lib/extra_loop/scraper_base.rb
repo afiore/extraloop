@@ -1,4 +1,5 @@
 class ScraperBase
+  include Utils::Support
 
   module Exceptions
     class HookArgumentError < StandardError
@@ -120,13 +121,16 @@ class ScraperBase
 
 
   def issue_request(url)
+    request_arguments = @request_arguments
+    request_arguments[:params] = merge_request_parameters(url)
+
     arguments = {
       'headers' => {
         'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0a2) Gecko/20110613 Firefox/6.0a2',
         'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
        }
     }
-    arguments.merge!(@request_arguments)
+    arguments.merge!(request_arguments)
     request = Typhoeus::Request.new(*[url, arguments])
 
     request.on_complete do |response|
@@ -136,6 +140,13 @@ class ScraperBase
     log("queueing url: #{url}", :info)
     @queued_count += 1
     @hydra.queue(request)
+  end
+
+  def merge_request_parameters(url)
+    url_params = URI::parse(url).extend(Utils::URIAddition).query_hash
+    return unless url_params && url_params.respond_to?(:merge)
+    params = symbolize_keys(@request_arguments[:params] ||= {})
+    url_params.merge(params)
   end
 
   def handle_response(response)

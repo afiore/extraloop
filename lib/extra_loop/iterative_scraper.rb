@@ -1,6 +1,5 @@
 class IterativeScraper < ScraperBase
 
-
   #
   # Public
   #

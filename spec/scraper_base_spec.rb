@@ -11,6 +11,7 @@ describe ScraperBase do
     @scraper = ScraperBase.new("http://localhost/fixture")
   end
 
+
   describe "#loop_on" do
     subject { @scraper.loop_on("bla.bla") }
     it { should eql(@scraper) }
@@ -107,6 +108,7 @@ describe ScraperBase do
       end
     end
   end
+
 
   context "multiple urls (async => true)" do
     describe "#run" do
