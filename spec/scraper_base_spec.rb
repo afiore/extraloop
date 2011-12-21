@@ -1,4 +1,5 @@
 require 'helpers/spec_helper'
+include Helpers::Scrapers
 
 describe ScraperBase do
   before do
@@ -33,20 +34,42 @@ describe ScraperBase do
     end
   end
 
+  context "request params in both the url and the arguments hash" do
+    describe "#run" do
+      before do
+
+        @request_args = {}
+        url = "http://localhost/whatever?q=stuff&p=1&limit=100"
+        stub_http(:url => url) do |hydra, request, response|
+          @request_args = request.params
+        end
+
+        any_instance_of(ExtractionLoop) do |extraloop|
+          stub(extraloop).run {}
+        end
+
+        @scraper = ScraperBase.new(url, {}, {
+          :params => { :limit => 250 }
+        }).run
+      end
+
+      it "should merge URL and request parameters" do
+        @request_args[:p].to_s.should eql("1")
+        @request_args[:q].to_s.should eql("stuff")
+        @request_args[:limit].to_s.should eql("250")
+      end 
+    end
+  end
+
+
+
   context "single url, no options provided (async => false)" do
     describe "#run" do
       before do
         @url = "http://localhost/fixture"
         @results = []
-        @hydra = Typhoeus::Hydra.new
-        stub(Typhoeus::Hydra).new { @hydra }
 
-        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
-
-        stub.proxy(Typhoeus::Request).new(@url, anything) do |request|
-          @hydra.stub(:get, @url).and_return(@response)
-          request
-        end
+        stub_http({:url => @url }, {:body => @fixture_doc})
 
         @scraper = ScraperBase.new(@url).
           loop_on("ul li.file a").
@@ -73,18 +96,11 @@ describe ScraperBase do
           "http://localhost/fixture3",
         ]
         @results = []
+        @hydra_run_call_count = 0
 
-        @hydra = Typhoeus::Hydra.new
-
-        #as this is a synchronous scraper, Hydra run should be called thrice
-        stub.proxy(@hydra).run.times(3)
-        stub(Typhoeus::Hydra).new { @hydra }
-
-        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
-
-        stub.proxy(Typhoeus::Request).new(anything, anything) do |request|
-          @hydra.stub(:get, @url).and_return(@response)
-          request
+        stub_http({}, :body => @fixture_doc) do |hydra, request, response|
+          @urls.each { |url| hydra.stub(:get, url).and_return(response) }
+          stub.proxy(hydra).run { @hydra_run_call_count += 1  }
         end
 
         @scraper = ScraperBase.new(@urls, :log => false).
@@ -105,6 +121,7 @@ describe ScraperBase do
       it "Should handle response" do
         @scraper.run
         @results.size.should eql(9)
+        @hydra_run_call_count.should eql(@urls.size)
       end
     end
   end
@@ -121,18 +138,11 @@ describe ScraperBase do
           "http://localhost/fixture5",
         ]
         @results = []
+        @hydra_run_call_count = 0
 
-        @hydra = Typhoeus::Hydra.new
-
-        #as this is an asynchronous scraper, Hydra run should be called only once
-        stub.proxy(@hydra).run.times(1)
-        stub(Typhoeus::Hydra).new { @hydra }
-
-        @response = Typhoeus::Response.new(:code => 200, :headers => "", :body => @fixture_doc)
-
-        stub.proxy(Typhoeus::Request).new(anything, anything) do |request|
-          @hydra.stub(:get, @url).and_return(@response)
-          request
+        stub_http({}, :body => @fixture_doc) do |hydra, request, response|
+          @urls.each { |url| hydra.stub(:get, url).and_return(response) }
+          stub.proxy(hydra).run { @hydra_run_call_count+=1 }
         end
 
         @scraper = ScraperBase.new(@urls, :async => true).
@@ -146,13 +156,14 @@ describe ScraperBase do
         stub(@fake_loop).run { }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(5) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(@urls.size) { @fake_loop  }
       end
 
 
       it "Should handle response" do
         @scraper.run
         @results.size.should eql(@urls.size * 3)
+        @hydra_run_call_count.should eql(1)
       end
     end
   end
