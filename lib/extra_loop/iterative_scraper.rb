@@ -1,11 +1,16 @@
 class IterativeScraper < ScraperBase
 
+  module Exceptions
+    class NonGetAsyncRequestNotYetImplemented < StandardError; end
+  end
+
+
   #
   # Public
   #
   # Initializes an iterative scraper (i.e. a scraper which can extract data from a list of several web pages).
   # 
-  # urls      -  One (or an array of) url pattern/s.
+  # urls      -  One or an array of several urls.
   # options   -  A hash of scraper options (optional).
   #   async : Wether or not the scraper should issue HTTP requests synchronously or asynchronously (defaults to false).
   #   log   : Logging options (set to false to completely suppress logging).
@@ -17,7 +22,7 @@ class IterativeScraper < ScraperBase
   #
   # # Iterates over the first 10 pages of Google News search result for the query 'Egypt'.
   #
-  # IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt&start=:start", :log => {
+  # IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt", :log => {
   #     :appenders => [ 'example.log', :stderr],
   #     :log_level => :debug
   #
@@ -27,8 +32,8 @@ class IterativeScraper < ScraperBase
   # # for the query 'Syria', issuing HTTP requests asynchronously, and ignoring ssl certificate verification.
   #
   # IterativeScraper.new([
-  #     https://www.google.com/search?tbm=nws&q=Egypt&start=:start",
-  #     https://www.google.com/search?tbm=nws&q=Syria&start=:start"
+  #     https://www.google.com/search?tbm=nws&q=Egypt",
+  #     https://www.google.com/search?tbm=nws&q=Syria"
   #   ], {:async => true,  }, {:disable_ssl_peer_verification => true
   #
   # }).set_iteration(:start, (1..101).step(10))
@@ -39,7 +44,7 @@ class IterativeScraper < ScraperBase
   def initialize(urls, options = {}, arguments = {})
     super([], options, arguments)
 
-    @url_patterns = Array(urls)
+    @base_urls = Array(urls)
     @iteration_set = []
     @iteration_extractor = nil
     @iteration_count = 0
@@ -51,16 +56,17 @@ class IterativeScraper < ScraperBase
 
   # Public
   #
-  # Specifies the collection of values over which the scraper should iterate (Values will be interpolated one by one into the scraper URL pattern/s).
+  # Specifies the collection of values over which the scraper should iterate. 
+  # At each iteration, the current value in the iteration set will be included as part of the request parameters.
   #
-  # param - the name of the parameter to interpolate (NOTE: this is probably not needed).
+  # param - the name of the iteration parameter.
   # args  - Either an array of values, or a set the arguments to initialize an Extractor object.
   #
   # Examples:
   #
   #  # Explicitly specify the iteration set (can be either a range or an array).
   #
-  #   IterativeScraper.new("http://my-site.com/events?p=:p").
+  #   IterativeScraper.new("http://my-site.com/events").
   #     set_iteration(:p, 1..10).
   #
   #  # Pass in a code block to dynamically extract the iteration set from the document.
@@ -75,7 +81,7 @@ class IterativeScraper < ScraperBase
   #    }.reject { |p| p == 1 }
   #  }
   #
-  #  IterativeScraper.new("http://my-site.com/events?p=:p").
+  #  IterativeScraper.new("http://my-site.com/events").
   #    set_iteration(:p, "div#pagination a", fetch_page_numbers)
   #
   #
@@ -93,8 +99,10 @@ class IterativeScraper < ScraperBase
     self
   end
 
+
+
   def run
-    @url_patterns.each do |pattern|
+    @base_urls.each do |pattern|
 
       # run an extra iteration when the iteration set has not been provided
       (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor 
@@ -137,24 +145,77 @@ class IterativeScraper < ScraperBase
     @iteration_param_value or "1"
   end
 
-  def run_iteration(url_pattern)
-    url = interpolate_url(url_pattern)
+
+  # 
+  # Runs an iteration performing an HTTP request per time (
+  # calls ScraperBase#run at each request)
+  #
+  # url - the current iteration's url.
+  #
+  # Returns nothing
+  #
+
+  def run_iteration(url)
     @urls = Array(url)
+    update_request_params!
+
     run_super(:run)
   end
 
-  def run_iteration_async(url_pattern)
-    @urls << interpolate_url(url_pattern)
+  #
+  # Runs an iteration asynchronously
+  #
+  # url - The current iteration's url.
+  #
+  # Returns nothing.
+  #
+  #
+  def run_iteration_async(url)
+    error_message = "When then option 'async' is set to true the IterativeScraper class currently supports only HTTP method 'get'." +
+      "If you have to use another HTTP method, you must set the 'async' option to false."
+
+    raise NonGetAsyncRequestNotYetImplemented error_message unless @request_arguments[:method].downcase.to_sym == :get
+
+    @urls << add_iteration_param(url)
     if @iteration_set.empty?
       run_super(:run)
     end
   end
 
-  #interpolate the url 
 
-  def interpolate_url(url)
+  #
+  # Dynamically updates the request parameter hash with the 
+  # current iteration parameter value.
+  #
+  #
+  # Returns nothing.
+  #
+
+  def update_request_params!
     offset = @iteration_set.at(@iteration_count) || default_offset
-    url.gsub(":#{@iteration_param.to_s}", offset)
+    @request_arguments[:params] ||= {}
+    @request_arguments[:params][@iteration_param.to_sym] = offset
+  end
+
+
+  #
+  # Ads the current iteration offset to a url as a GET parameter.
+  #
+  # url - the url to be update
+  #
+  # Returns a url with the current iteration value represented as a get parameter.
+  #
+  def add_iteration_param(url)
+    offset = @iteration_set.at(@iteration_count) || default_offset
+    param = "#{@iteration_param}=#{offset}"
+    parsed_uri = URI::parse(url)
+
+    if parased_uri.query
+      parsed_uri.query += param
+    else
+      parsed.uri.query =  param
+    end
+    parsed_uri.to_s
   end
 
   #
@@ -167,6 +228,13 @@ class IterativeScraper < ScraperBase
     self.class.superclass.instance_method(method).bind(self).call
   end
 
+  # 
+  # Overrides ScraperBase#handle_response in order to apply the proc used to dynamically extract the iteration set.
+  # The proc called only once, only if it has been provided.
+  #
+  # returns nothing.
+  #
+
   def handle_response(response)
     @iteration_set = Array(default_offset) + extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
     super(response)
@@ -175,7 +243,7 @@ class IterativeScraper < ScraperBase
   # 
   # Runs the extractor provided in order to dynamically fetch the array of values needed for the iterative scrape.
   #
-  # Returns an array of strings.
+  # Returns the iteration set as an array of strings.
   #
   #
 

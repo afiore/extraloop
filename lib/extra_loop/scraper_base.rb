@@ -121,8 +121,7 @@ class ScraperBase
 
 
   def issue_request(url)
-    request_arguments = @request_arguments
-    request_arguments[:params] = merge_request_parameters(url)
+    @request_arguments[:params] = merge_request_parameters(url)
 
     arguments = {
       'headers' => {
@@ -130,7 +129,7 @@ class ScraperBase
         'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
        }
     }
-    arguments.merge!(request_arguments)
+    arguments.merge!(@request_arguments)
     request = Typhoeus::Request.new(*[url, arguments])
 
     request.on_complete do |response|
@@ -144,7 +143,7 @@ class ScraperBase
 
   def merge_request_parameters(url)
     url_params = URI::parse(url).extend(Utils::URIAddition).query_hash
-    return unless url_params && url_params.respond_to?(:merge)
+    return @request_arguments[:params] || {} unless url_params && url_params.respond_to?(:merge)
     params = symbolize_keys(@request_arguments[:params] ||= {})
     url_params.merge(params)
   end
