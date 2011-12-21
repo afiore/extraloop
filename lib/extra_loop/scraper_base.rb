@@ -144,6 +144,7 @@ class ScraperBase
   def merge_request_parameters(url)
     url_params = URI::parse(url).extend(Utils::URIAddition).query_hash
     return @request_arguments[:params] || {} unless url_params && url_params.respond_to?(:merge)
+
     params = symbolize_keys(@request_arguments[:params] ||= {})
     url_params.merge(params)
   end

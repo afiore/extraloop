@@ -30,9 +30,10 @@ module Helpers
       response = Typhoeus::Response.new(response_args)
 
       stub.proxy(Typhoeus::Request).new(request_args[:url], request_args[:options]) do |request|
-
+        #
         # this allows to stub several requests by handing control to a block
         #
+
         if block_given?
           yield(@hydra, request, response)
         else

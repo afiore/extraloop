@@ -34,19 +34,19 @@ describe IterativeScraper do
     end
   end
 
-  #context "(single url pattern, iteration_set is range , async => false )" do
-  #  before(:each) do
-  #    @scraper = IterativeScraper.new("http://whatever.net/search?p=:p")
-  #    mock(@scraper).run_super(:run).times(10) {}
-  #    @scraper.set_iteration(:p, (1..10))
-  #  end
+  context "(single url pattern, iteration_set is range , async => false )" do
+    before(:each) do
+      @scraper = IterativeScraper.new("http://whatever.net/search?p=:p")
+      mock(@scraper).run_super(:run).times(10) {}
+      @scraper.set_iteration(:p, (1..10))
+    end
 
-  #  describe "#run" do
-  #    it "super#run should be called 10 times" do
-  #      @scraper.run
-  #    end
-  #  end
-  #end
+    describe "#run" do
+      it "super#run should be called 10 times" do
+        @scraper.run
+      end
+    end
+  end
 
   context "(single url pattern, iteration_set is extractor, async => false )" do
     before(:each) do
@@ -82,9 +82,30 @@ describe IterativeScraper do
     end
   end
 
-  context "" do
-    describe "#run" do
+  context "(single url pattern, iteration_set is range, async => true )" do
 
+    before do
+      @params_sent = []
+      any_instance_of(ExtractionLoop) do |eloop|
+        stub(eloop).run {}
+      end
+
+      stub_http do |hydra, request, response|
+        hydra.stub(:get, /http:\/\/whatever\.net\/search/).and_return(response)
+        @params_sent << request.params[:p]
+      end
+
+      @scraper = IterativeScraper.
+        new("http://whatever.net/search", :async => true).
+        set_iteration(:p, (0..20).step(5)).
+        run()
+    end
+
+
+    describe "#run" do
+      it "params sent should be p=1, p=5, p=10, p=15, p=20" do
+        @params_sent.should eql([0, 5, 10, 15, 20].map &:to_s)
+      end
     end
   end
 

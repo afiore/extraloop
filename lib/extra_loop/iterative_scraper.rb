@@ -158,7 +158,6 @@ class IterativeScraper < ScraperBase
   def run_iteration(url)
     @urls = Array(url)
     update_request_params!
-
     run_super(:run)
   end
 
@@ -174,10 +173,11 @@ class IterativeScraper < ScraperBase
     error_message = "When then option 'async' is set to true the IterativeScraper class currently supports only HTTP method 'get'." +
       "If you have to use another HTTP method, you must set the 'async' option to false."
 
-    raise NonGetAsyncRequestNotYetImplemented error_message unless @request_arguments[:method].downcase.to_sym == :get
+    raise NonGetAsyncRequestNotYetImplemented error_message unless @request_arguments[:method].nil? || @request_arguments[:method].downcase.to_sym == :get
 
     @urls << add_iteration_param(url)
-    if @iteration_set.empty?
+
+    if @iteration_set.size - 1 == @iteration_count
       run_super(:run)
     end
   end
@@ -208,14 +208,14 @@ class IterativeScraper < ScraperBase
   def add_iteration_param(url)
     offset = @iteration_set.at(@iteration_count) || default_offset
     param = "#{@iteration_param}=#{offset}"
-    parsed_uri = URI::parse(url)
+    parsed_url = URI::parse(url)
 
-    if parased_uri.query
-      parsed_uri.query += param
+    if parsed_url.query
+      parsed_url.query += param
     else
-      parsed.uri.query =  param
+      parsed_url.query =  param
     end
-    parsed_uri.to_s
+    parsed_url.to_s
   end
 
   #
@@ -228,6 +228,14 @@ class IterativeScraper < ScraperBase
     self.class.superclass.instance_method(method).bind(self).call
   end
 
+
+  def issue_request(url)
+    super(url)
+    # clear previous value of iteration parameter
+    @request_arguments[:params].delete(@iteration_param.to_sym) if @request_arguments[:params] && @request_arguments[:params].any?
+  end
+
+
   # 
   # Overrides ScraperBase#handle_response in order to apply the proc used to dynamically extract the iteration set.
   # The proc called only once, only if it has been provided.
@@ -239,6 +247,7 @@ class IterativeScraper < ScraperBase
     @iteration_set = Array(default_offset) + extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
     super(response)
   end
+
 
   # 
   # Runs the extractor provided in order to dynamically fetch the array of values needed for the iterative scrape.
