@@ -1,33 +1,4 @@
-class Extractor
-  module Exceptions
-    class WrongArgumentError < StandardError
-    end
-  end
-
-  include Utils::Support
-
-  attr_reader :field_name
-
-  #
-  # Public: Initializes a Data extractor.
-  #
-  # Parameters:
-  #   field_name  - The machine readable field name
-  #   selector:   - The css3/JSON selector to be used to match a specific portion of a document (optional).
-  #   callback    - A block of code to which the extracted node/attribute will be passed (optional).
-  #   attribute:  - A node attribute. If provided, the attribute value will be returned (optional).
-  #
-  # Returns itself
-  #
-
-  def initialize(field_name, *args)
-    @field_name = field_name
-    @selector = args.find { |arg| arg.is_a?(String)}
-    args.delete(@selector) if @selector
-    @attribute = args.find { |arg| arg.is_a?(String) || arg.is_a?(Symbol) }
-    @callback = args.find { |arg| arg.respond_to?(:call) }
-    self
-  end
+class DomExtractor < ExtractorBase
 
   # Public: Runs the extractor against a document fragment (dom node or object).
   #
@@ -42,6 +13,7 @@ class Extractor
     target = node.at_css(@selector)  if @selector
     target = target.attr(@attribute) if target.respond_to?(:attr) && @attribute
     target = @callback.call(target, record) if @callback
+
     #if target is still a DOM node, return its text content
     target = target.text if target.respond_to?(:text)
     target
@@ -57,13 +29,17 @@ class Extractor
   #
 
   def extract_list(input)
-    nodes = parse(input)
+    nodes = input.respond_to?(:document) ? input : parse(input)
     nodes = nodes.css(@selector) if @selector
     @callback && @callback.call(nodes) || nodes
   end
 
-  private
   def parse(input)
-    if input.is_a?(String) then Nokogiri::HTML(input) else input end
+    raise Exceptions::ExtractorParseError.new "input parameter must be a string" unless input.is_a?(String)
+    is_xml(input) ? Nokogiri::XML(input) : Nokogiri::HTML(input)
+  end
+
+  def is_xml(input)
+    input =~ /^\s*\<\?xml version=\"\d\.\d\"\?\>/
   end
 end

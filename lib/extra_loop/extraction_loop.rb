@@ -1,14 +1,20 @@
 class ExtractionLoop
+
+  module Exceptions
+    class UnsupportedFormat < StandardError; end
+  end
+
   attr_reader :records
-  attr_accessor :extractors, :document, :hooks, :children, :parent
+  attr_accessor :extractors, :document, :hooks, :children, :parent, :format
 
   def initialize(loop_extractor, extractors=[], document=nil, hooks = {})
     @loop_extractor = loop_extractor
     @extractors = extractors
-    @document = if document && document.is_a?(String) then Nokogiri::HTML(document) else document end
+    @document = @loop_extractor.parse(document)
     @records = []
     @hooks = hooks
     @parent = nil
+    @format = format
     self
   end
 

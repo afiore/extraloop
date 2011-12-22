@@ -27,10 +27,10 @@ class ScraperBase
 
   def initialize(urls, options = {}, arguments = {})
     @urls = Array(urls)
-    @loop_extractor = nil
+    @loop_extractor_args = nil
+    @extractor_args = []
     @loop = nil
 
-    @extractors = []
     @request_arguments = arguments
 
     @options = {
@@ -69,7 +69,7 @@ class ScraperBase
   #
 
   def loop_on(*args)
-    @loop_extractor = Extractor.new(*args.insert(0, nil))
+    @loop_extractor_args = args.insert(0, nil)
     self
   end
 
@@ -86,7 +86,7 @@ class ScraperBase
   #
 
   def extract(*args)
-    @extractors << Extractor.new(*args)
+    @extractor_args << args
     self
   end
 
@@ -151,12 +151,28 @@ class ScraperBase
 
   def handle_response(response)
     @response_count+=1
-
+    @loop = prepare_loop(response)
     log("response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}")
-    @loop = ExtractionLoop.new(@loop_extractor, @extractors, response.body, @hooks)
     @loop.run
 
     run_hook(:on_data, [@loop.records, response.effective_url, response])
+  end
+
+  def prepare_loop(response)
+    format = @options[:format] || detect_format(response.headers_hash.fetch('Content-Type', nil))
+    extractor_class = format == :json ? JsonExtractor : DomExtractor
+    loop_extractor = extractor_class.new(*@loop_extractor_args)
+    extractors = @extractor_args.map { |args|  extractor_class.new(*args) }
+    ExtractionLoop.new(loop_extractor, extractors, response.body, @hooks)
+  end
+
+  def detect_format(content_type)
+    #TODO: add support for xml/rdf documents
+    if content_type && content_type =~ /json$/
+      :json
+    else
+      :html
+    end
   end
 
 end

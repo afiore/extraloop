@@ -15,17 +15,17 @@ describe ScraperBase do
 
   describe "#loop_on" do
     subject { @scraper.loop_on("bla.bla") }
-    it { should eql(@scraper) }
+    it { should be_an_instance_of(ScraperBase) }
   end
 
   describe "#extract" do
     subject { @scraper.extract("fieldname", "bla.bla") }
-    it { should eql(@scraper) }
+    it { should be_an_instance_of(ScraperBase) }
   end
 
   describe "#set_hook" do
     subject { @scraper.set_hook(:after, proc {}) }
-    it { should eql(@scraper)}
+    it { should be_an_instance_of(ScraperBase)  }
   end
 
   describe "#set_hook" do
@@ -40,8 +40,9 @@ describe ScraperBase do
 
         @request_args = {}
         url = "http://localhost/whatever?q=stuff&p=1&limit=100"
-        stub_http(:url => url) do |hydra, request, response|
+        stub_http do |hydra, request, response|
           @request_args = request.params
+          hydra.stub(:get, request.url).and_return(response)
         end
 
         any_instance_of(ExtractionLoop) do |extraloop|
@@ -50,7 +51,7 @@ describe ScraperBase do
 
         @scraper = ScraperBase.new(url, {}, {
           :params => { :limit => 250 }
-        }).run
+        }).loop_on(".stuff").run
       end
 
       it "should merge URL and request parameters" do
@@ -69,7 +70,9 @@ describe ScraperBase do
         @url = "http://localhost/fixture"
         @results = []
 
-        stub_http({:url => @url }, {:body => @fixture_doc})
+        stub_http({}, :body => @fixture_doc) do |hydra, request, response|
+          hydra.stub(:get, request.url).and_return(response)
+        end
 
         @scraper = ScraperBase.new(@url).
           loop_on("ul li.file a").
@@ -98,7 +101,7 @@ describe ScraperBase do
         @results = []
         @hydra_run_call_count = 0
 
-        stub_http({}, :body => @fixture_doc) do |hydra, request, response|
+        stub_http do |hydra, request, response|
           @urls.each { |url| hydra.stub(:get, url).and_return(response) }
           stub.proxy(hydra).run { @hydra_run_call_count += 1  }
         end
@@ -114,7 +117,7 @@ describe ScraperBase do
         stub(@fake_loop).run { }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(3) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash)).times(3) { @fake_loop  }
       end
 
 
@@ -156,7 +159,7 @@ describe ScraperBase do
         stub(@fake_loop).run { }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(Extractor), is_a(Array), is_a(String), is_a(Hash)).times(@urls.size) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash)).times(@urls.size) { @fake_loop  }
       end
 
 

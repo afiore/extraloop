@@ -47,6 +47,7 @@ class IterativeScraper < ScraperBase
     @base_urls = Array(urls)
     @iteration_set = []
     @iteration_extractor = nil
+    @iteration_extractor_args = nil
     @iteration_count = 0
     @iteration_param = nil
     @iteration_param_value = nil
@@ -93,7 +94,7 @@ class IterativeScraper < ScraperBase
     if args.first.respond_to?(:map)
       @iteration_set = Array(args.first).map &:to_s
     else
-      @iteration_extractor = Extractor.new(:pagination, *args)
+      @iteration_extractor_args = [:pagination, *args]
     end
     set_iteration_param(param)
     self
@@ -105,7 +106,7 @@ class IterativeScraper < ScraperBase
     @base_urls.each do |pattern|
 
       # run an extra iteration when the iteration set has not been provided
-      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor 
+      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor_args
 
       while @iteration_set.at(@iteration_count)
         method = @options[:async] ? :run_iteration_async : :run_iteration
@@ -225,7 +226,7 @@ class IterativeScraper < ScraperBase
   #
 
   def run_super(method, args=[])
-    self.class.superclass.instance_method(method).bind(self).call
+    self.class.superclass.instance_method(method).bind(self).call(*args)
   end
 
 
@@ -244,9 +245,14 @@ class IterativeScraper < ScraperBase
   #
 
   def handle_response(response)
+    format = run_super(:detect_format, response.headers_hash['Content-Type']) 
+    extractor_class = format == :json ? JsonExtractor : DomExtractor
+    @iteration_extractor =  extractor_class.new(*@iteration_extractor_args)  if @iteration_extractor_args
     @iteration_set = Array(default_offset) + extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
     super(response)
   end
+
+
 
 
   # 

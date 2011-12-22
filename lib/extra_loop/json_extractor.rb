@@ -1,0 +1,3 @@
+class JsonExtractor < ExtractorBase
+
+end

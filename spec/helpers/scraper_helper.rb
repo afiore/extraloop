@@ -15,7 +15,7 @@ module Helpers
 
       response_args = {
         :code => 200,
-        :headers => "",
+        :headers => "Content-Type: text/html",
         :body => "response stub"
       }.merge(response_args)
 

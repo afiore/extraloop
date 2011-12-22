@@ -1,14 +1,22 @@
 require 'helpers/spec_helper'
-require 'pry'
 
 describe ExtractionLoop do
   describe "#new" do
-    subject { ExtractionLoop.new(Object.new) }
+
+
+    before do
+      @mock_loop = Object.new
+      stub(@mock_loop).parse {}
+
+    end
+
+    subject { ExtractionLoop.new(@mock_loop) }
+
     it "should allow read/write access to public attributes" do
+
       {:extractors => [:fake, :fake],
        :document => nil,
-       :hooks => {:whaterver => true}
-
+       :hooks => { :whaterver => true }
       }.each do |k, v|
         subject.send("#{k}=", v)
         subject.send(k).should eql(v)
@@ -17,7 +25,6 @@ describe ExtractionLoop do
   end
 
   describe "run" do
-
     before(:each) do
       @extractors = [:a, :b].map do |field_name|
         object = Object.new
@@ -25,8 +32,12 @@ describe ExtractionLoop do
         stub(object).field_name { field_name }
         object
       end
+     
+      @loop_extractor = Object.new
 
-      stub(@loop_extractor = Object.new).extract_list { |document|
+      stub(@loop_extractor).parse { |input| Nokogiri::HTML("<html><body>Hello test!</body></html>") }
+
+      stub(@loop_extractor).extract_list { |document|
         #list of fake dom elements
         (0..9).to_a.map { |n| {:a => n, :b => n*n } }
       }
