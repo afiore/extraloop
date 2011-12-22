@@ -34,6 +34,16 @@ describe IterativeScraper do
     end
   end
 
+  describe "#continue_with" do
+    before do 
+      @scraper = IterativeScraper.new("http://whatever.net/search")
+    end
+
+    subject { @scraper.continue_with( proc { |result| result['continue'] }) }
+    it { should be_an_instance_of(IterativeScraper) }
+  end
+
+
   context "(single url pattern, iteration_set is range , async => false )" do
     before(:each) do
       @scraper = IterativeScraper.new("http://whatever.net/search")
@@ -83,32 +93,67 @@ describe IterativeScraper do
     end
   end
 
-  #context "(single url pattern, iteration_set is range, async => true )" do
+  context "(single url pattern, iteration_set is range, async => true )" do
 
-  #  before do
-  #    @params_sent = []
-  #    any_instance_of(ExtractionLoop) do |eloop|
-  #      stub(eloop).run {}
-  #    end
+    before do
+      @params_sent = []
+      any_instance_of(ExtractionLoop) do |eloop|
+        stub(eloop).run {}
+      end
 
-  #    stub_http do |hydra, request, response|
-  #      hydra.stub(:get, /http:\/\/whatever\.net\/search/).and_return(response)
-  #      @params_sent << request.params[:p]
-  #    end
+      stub_http do |hydra, request, response|
+        hydra.stub(:get, /http:\/\/whatever\.net\/search/).and_return(response)
+        @params_sent << request.params[:p]
+      end
 
-  #    @scraper = IterativeScraper.
-  #      new("http://whatever.net/search", :async => true).
-  #      set_iteration(:p, (0..20).step(5)).
-  #      loop_on(".whatever").
-  #      run()
-  #  end
+      @scraper = IterativeScraper.
+        new("http://whatever.net/search", :async => true).
+        set_iteration(:p, (0..20).step(5)).
+        loop_on(".whatever").
+        run()
+    end
 
 
-  #  describe "#run" do
-  #    it "params sent should be p=1, p=5, p=10, p=15, p=20" do
-  #      @params_sent.should eql([0, 5, 10, 15, 20].map &:to_s)
-  #    end
-  #  end
-  #end
+    describe "#run" do
+      it "params sent should be p=1, p=5, p=10, p=15, p=20" do
+        @params_sent.should eql([0, 5, 10, 15, 20].map &:to_s)
+      end
+    end
+  end
+
+  context "using #continue_with" do
+    
+    describe "#run" do
+      before do
+        @continue_values = (5..10).to_a
+        shift_values = proc { |data| @continue_values.shift }
+
+        #TODO: fix this! times should be 5, not 6
+        mock.proxy(shift_values).call(is_a(Hash), anything).times(@continue_values.size + 1)
+
+        stub_http({}, {headers: "Content-Type: application/json", :body => '{"hello":"test"}' }) do |hydra, request, response|
+          hydra.stub(:get, request.url).and_return(response)
+        end
+
+        @scraper = IterativeScraper.
+          new("http://twizzer.net/timeline", :log => {
+            :log_level => :debug,
+            :appenders => [Logging.appenders.stderr]
+          }).
+          loop_on(proc {}).
+          continue_with({:continue => ''}, shift_values)
+      end
+
+      #TODO: 
+      #
+      # When #continue_with is used, it would be better avoid sending
+      # an empty iteration_parameter
+      #
+      it "Should run 5 times" do
+        @scraper.run
+      end
+
+    end
+  end
 
 end

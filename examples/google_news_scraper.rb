@@ -1,6 +1,4 @@
-require 'pry'
 require '../lib/extra_loop'
-
 
 results = []
 
@@ -20,9 +18,7 @@ IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt", :log => {
     }).
     run()
 
-
 results.each_with_index do |record, index|
   puts "#{index}) #{record.title} (source: #{record.source})"
 end
-
 

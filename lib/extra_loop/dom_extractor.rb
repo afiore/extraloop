@@ -9,7 +9,7 @@ class DomExtractor < ExtractorBase
   #
 
   def extract_field(node, record=nil)
-    target = node
+    target = node = node.respond_to?(:document) ? node : parse(node)
     target = node.at_css(@selector)  if @selector
     target = target.attr(@attribute) if target.respond_to?(:attr) && @attribute
     target = @callback.call(target, record) if @callback

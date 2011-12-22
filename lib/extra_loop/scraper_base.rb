@@ -139,7 +139,7 @@ class ScraperBase
       handle_response(response)
     end
 
-    log("queueing url: #{url}", :info)
+    log("queueing url: #{url}, params #{arguments[:params]}", :info)
     @queued_count += 1
     @hydra.queue(request)
   end

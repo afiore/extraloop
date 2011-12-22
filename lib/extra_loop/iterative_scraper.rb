@@ -4,7 +4,6 @@ class IterativeScraper < ScraperBase
     class NonGetAsyncRequestNotYetImplemented < StandardError; end
   end
 
-
   #
   # Public
   #
@@ -51,6 +50,7 @@ class IterativeScraper < ScraperBase
     @iteration_count = 0
     @iteration_param = nil
     @iteration_param_value = nil
+    @continue_clause_args = nil
     self
   end
 
@@ -100,12 +100,30 @@ class IterativeScraper < ScraperBase
     self
   end
 
+  # Public
+  #
+  # Allows to set the value of offset parameter by building and running an extractor.
+  #
+  #
+  # param - A symbol identifying the itertion parameter name.
+  # extractor_args - Arguments to be passed to the extractor which will be used to evaluate the continue value
+  #
+  #
+  # Returns itself.
+  #
+  #
 
+  def continue_with(param, *extractor_args)
+    @continue_clause_args = extractor_args
+    set_iteration_param(param)
+    self
+  end
 
   def run
     @base_urls.each do |pattern|
+      
       # run an extra iteration when the arguments for extractoing the iteration set have not been provided
-      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor_args
+      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor_args || @continue_clause_args
 
       while @iteration_set.at(@iteration_count)
         method = @options[:async] ? :run_iteration_async : :run_iteration
@@ -240,26 +258,37 @@ class IterativeScraper < ScraperBase
   # Overrides ScraperBase#handle_response in order to apply the proc used to dynamically extract the iteration set.
   # The proc called only once, only if it has been provided.
   #
+  # TODO: update doc
+  #
   # returns nothing.
   #
 
   def handle_response(response)
     format = run_super(:detect_format, response.headers_hash['Content-Type']) 
     extractor_class = format == :json ? JsonExtractor : DomExtractor
-    @iteration_extractor =  extractor_class.new(*@iteration_extractor_args)  if @iteration_extractor_args
-    @iteration_set = Array(default_offset) + extract_iteration_set(response) if @response_count == 0 && @iteration_extractor
+
+
+    run_iteration_extractor(response.body, extractor_class) if @response_count == 0 && @iteration_extractor_args
+    run_continue_clause(response.body, extractor_class) if @continue_clause_args
+
     super(response)
   end
 
 
-  # 
-  # Runs the extractor provided in order to dynamically fetch the array of values needed for the iterative scrape.
-  #
-  # Returns the iteration set as an array of strings.
-  #
-  #
+  def run_continue_clause(response_body, extractor_class)
+    extractor = extractor_class.new(:continue, *@continue_clause_args)
+    continue_value = extractor.extract_field(response_body)
 
-  def extract_iteration_set(response)
-    @iteration_extractor.extract_list(response.body).map(&:to_s)
+    #todo: perform some checks here
+    @iteration_set << "" if @iteration_count == 0 && continue_value
+    @iteration_set <<  continue_value.to_s if continue_value
   end
+
+  def run_iteration_extractor(response_body, extractor_class)
+    @iteration_extractor =  extractor_class.new(*@iteration_extractor_args)
+    #NOTE: does this default_offset make any sense?
+    @iteration_set = Array(default_offset) + @iteration_extractor.extract_list(response_body).map(&:to_s) if @iteration_extractor
+  end
+
+
 end

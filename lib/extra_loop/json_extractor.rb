@@ -1,7 +1,7 @@
 class JsonExtractor < ExtractorBase
 
   def extract_field(node, record=nil)
-    output = node
+    output = node = node.is_a?(String) ? parse(node) : node
     output = node[@attribute.to_s] if @attribute
     output = @callback.call(output, record) if @callback
 
