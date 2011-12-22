@@ -104,8 +104,7 @@ class IterativeScraper < ScraperBase
 
   def run
     @base_urls.each do |pattern|
-
-      # run an extra iteration when the iteration set has not been provided
+      # run an extra iteration when the arguments for extractoing the iteration set have not been provided
       (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor_args
 
       while @iteration_set.at(@iteration_count)
