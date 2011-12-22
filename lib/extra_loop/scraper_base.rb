@@ -121,16 +121,19 @@ class ScraperBase
 
 
   def issue_request(url)
+
     @request_arguments[:params] = merge_request_parameters(url)
+    url_without_params = url.gsub(/\?.*/,"")
 
     arguments = {
-      'headers' => {
-        'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0a2) Gecko/20110613 Firefox/6.0a2',
-        'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-       }
+      'headers' => [
+        'User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0a2) Gecko/20110613 Firefox/6.0a2',
+        'accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      ].join("\n")
     }
+
     arguments.merge!(@request_arguments)
-    request = Typhoeus::Request.new(*[url, arguments])
+    request = Typhoeus::Request.new(*[url_without_params, arguments])
 
     request.on_complete do |response|
       handle_response(response)
@@ -155,7 +158,7 @@ class ScraperBase
     log("response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}")
     @loop.run
 
-    run_hook(:on_data, [@loop.records, response.effective_url, response])
+    run_hook(:on_data, [@loop.records, response])
   end
 
   def prepare_loop(response)

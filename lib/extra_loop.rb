@@ -1,3 +1,5 @@
+base_path = File.expand_path(File.dirname(__FILE__) + "/extra_loop"  )
+
 # Standard library
 autoload :OpenStruct, "ostruct"
 
@@ -13,16 +15,17 @@ autoload :Nokogiri, "nokogiri"
 autoload :Yajl,     "yajl"
 autoload :Typhoeus, "typhoeus"
 
+
 # Extraloop components
 
-autoload :Utils,            "extra_loop/utils"
-autoload :ExtractorBase,    "extra_loop/extractor_base"
-autoload :DomExtractor,     "extra_loop/dom_extractor"
-autoload :JsonExtractor,    "extra_loop/json_extractor"
-autoload :ExtractionLoop,   "extra_loop/extraction_loop"
-autoload :ScraperBase,      "extra_loop/scraper_base"
-autoload :Loggable,         "extra_loop/loggable"
-autoload :IterativeScraper, "extra_loop/iterative_scraper"
+autoload :Utils,            "#{base_path}/utils"
+autoload :ExtractorBase,    "#{base_path}/extractor_base"
+autoload :DomExtractor,     "#{base_path}/dom_extractor"
+autoload :JsonExtractor,    "#{base_path}/json_extractor"
+autoload :ExtractionLoop,   "#{base_path}/extraction_loop"
+autoload :ScraperBase,      "#{base_path}/scraper_base"
+autoload :Loggable,         "#{base_path}/loggable"
+autoload :IterativeScraper, "#{base_path}/iterative_scraper"
 
 
 # monkey patch scraperbase with the Loggable module.

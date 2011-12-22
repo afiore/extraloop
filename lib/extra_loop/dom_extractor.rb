@@ -30,7 +30,7 @@ class DomExtractor < ExtractorBase
 
   def extract_list(input)
     nodes = input.respond_to?(:document) ? input : parse(input)
-    nodes = nodes.css(@selector) if @selector
+    nodes = nodes.search(@selector) if @selector
     @callback && @callback.call(nodes) || nodes
   end
 
