@@ -9,13 +9,12 @@ class ExtractorBase
   end
 
   attr_reader :field_name
-
   #
   # Public: Initializes a Data extractor.
   #
   # Parameters:
   #   field_name  - The machine readable field name
-  #   selector:   - The css3/JSON selector to be used to match a specific portion of a document (optional).
+  #   selector:   - The css3 selector to be used to match a specific portion of a document (optional).
   #   callback    - A block of code to which the extracted node/attribute will be passed (optional).
   #   attribute:  - A node attribute. If provided, the attribute value will be returned (optional).
   #
@@ -29,5 +28,10 @@ class ExtractorBase
     @attribute = args.find { |arg| arg.is_a?(String) || arg.is_a?(Symbol) }
     @callback = args.find { |arg| arg.respond_to?(:call) }
     self
+  end
+
+
+  def parse(input)
+    raise Exceptions::ExtractorParseError.new "input parameter must be a string" unless input.is_a?(String)
   end
 end

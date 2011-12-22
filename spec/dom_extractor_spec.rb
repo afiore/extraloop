@@ -147,7 +147,7 @@ describe DomExtractor do
     end
   end
 
-  context "non-tring input" do
+  context "non-string input" do
     describe "#parse" do
       before do 
         @extractor = DomExtractor.new(nil, "entry")

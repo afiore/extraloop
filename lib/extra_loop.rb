@@ -3,12 +3,14 @@ autoload :OpenStruct, "ostruct"
 
 # Rubygems
 
+gem "yajl-ruby"
 gem "nokogiri"
 gem "typhoeus"
 gem "logging"
 
 
 autoload :Nokogiri, "nokogiri"
+autoload :Yajl,     "yajl"
 autoload :Typhoeus, "typhoeus"
 
 # Extraloop components

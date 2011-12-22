@@ -35,7 +35,7 @@ class DomExtractor < ExtractorBase
   end
 
   def parse(input)
-    raise Exceptions::ExtractorParseError.new "input parameter must be a string" unless input.is_a?(String)
+    super(input)
     is_xml(input) ? Nokogiri::XML(input) : Nokogiri::HTML(input)
   end
 

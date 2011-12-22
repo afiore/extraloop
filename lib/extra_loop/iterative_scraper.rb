@@ -252,8 +252,6 @@ class IterativeScraper < ScraperBase
   end
 
 
-
-
   # 
   # Runs the extractor provided in order to dynamically fetch the array of values needed for the iterative scrape.
   #
