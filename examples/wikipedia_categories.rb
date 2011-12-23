@@ -25,6 +25,12 @@ options = {
 request_arguments = { :params => params }
 
 
+#
+# Fetches members of the English wikipedia's category "Linguistics".
+#
+# This uses the the #continue_with instead of the #set_iteration method 
+# (used in the Google News example).
+#
 
 IterativeScraper.new(api_url, options, request_arguments).
   loop_on(proc { |doc| doc['query']['categorymembers'] }).
