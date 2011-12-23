@@ -126,22 +126,22 @@ describe IterativeScraper do
     describe "#run" do
       before do
         @continue_values = (5..10).to_a
+        @values_sent = []
         shift_values = proc { |data| @continue_values.shift }
 
         #TODO: fix this! times should be 5, not 6
         mock.proxy(shift_values).call(is_a(Hash), anything).times(@continue_values.size + 1)
 
         stub_http({}, {headers: "Content-Type: application/json", :body => '{"hello":"test"}' }) do |hydra, request, response|
+          @values_sent << request.params[:continue]
           hydra.stub(:get, request.url).and_return(response)
         end
 
-        @scraper = IterativeScraper.
-          new("http://twizzer.net/timeline", :log => {
-            :log_level => :debug,
-            :appenders => [Logging.appenders.stderr]
-          }).
+        IterativeScraper.
+          new("http://twizzer.net/timeline").
           loop_on(proc {}).
-          continue_with({:continue => ''}, shift_values)
+          continue_with({:continue => ''}, shift_values).
+          run()
       end
 
       #TODO: 
@@ -150,7 +150,7 @@ describe IterativeScraper do
       # an empty iteration_parameter
       #
       it "Should run 5 times" do
-        @scraper.run
+        @continue_values.all? { |val| @values_sent.include? val.to_s }.should be_true
       end
 
     end

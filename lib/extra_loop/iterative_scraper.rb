@@ -248,6 +248,8 @@ class IterativeScraper < ScraperBase
 
 
   def issue_request(url)
+    # remove continue argument if this is the first iteration
+    @request_arguments[:params].delete(@iteration_param.to_sym) if @continue_clause_args && @iteration_count == 0
     super(url)
     # clear previous value of iteration parameter
     @request_arguments[:params].delete(@iteration_param.to_sym) if @request_arguments[:params] && @request_arguments[:params].any?
@@ -264,7 +266,7 @@ class IterativeScraper < ScraperBase
   #
 
   def handle_response(response)
-    format = run_super(:detect_format, response.headers_hash['Content-Type']) 
+    format =  @options[:format] || run_super(:detect_format, response.headers_hash['Content-Type']) 
     extractor_class = format == :json ? JsonExtractor : DomExtractor
 
 
