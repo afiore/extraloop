@@ -102,12 +102,13 @@ describe IterativeScraper do
       end
 
       stub_http do |hydra, request, response|
-        hydra.stub(:get, /http:\/\/whatever\.net\/search/).and_return(response)
+        binding.pry
+        hydra.stub(:get, request.url).and_return(response)
         @params_sent << request.params[:p]
       end
 
       @scraper = IterativeScraper.
-        new("http://whatever.net/search", :async => true).
+        new("http://whatever.net/search", {:async => true}, {:params => {:format => "json"} } ).
         set_iteration(:p, (0..20).step(5)).
         loop_on(".whatever").
         run()
@@ -115,7 +116,7 @@ describe IterativeScraper do
 
 
     describe "#run" do
-      it "params sent should be p=1, p=5, p=10, p=15, p=20" do
+      it "params sent should be p=1, p=5, p=10, p=15, p=20", :failing => 'true' do
         @params_sent.should eql([0, 5, 10, 15, 20].map &:to_s)
       end
     end

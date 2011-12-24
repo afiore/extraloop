@@ -102,16 +102,13 @@ class IterativeScraper < ScraperBase
 
   # Public
   #
-  # Allows to set the value of offset parameter by building and running an extractor.
-  #
+  # Builds an extractor and uses it to set the value of the next iteration's offset parameter.
+  # If the extractor returns nil, the iteration stops.
   #
   # param - A symbol identifying the itertion parameter name.
   # extractor_args - Arguments to be passed to the extractor which will be used to evaluate the continue value
   #
-  #
   # Returns itself.
-  #
-  #
 
   def continue_with(param, *extractor_args)
     @continue_clause_args = extractor_args
@@ -120,14 +117,16 @@ class IterativeScraper < ScraperBase
   end
 
   def run
-    @base_urls.each do |pattern|
-      
-      # run an extra iteration when the arguments for extractoing the iteration set have not been provided
-      (run_iteration(pattern); @iteration_count += 1 ) if @iteration_extractor_args || @continue_clause_args
+    @base_urls.each do |base_url|
+
+      # run an extra iteration to determine the value of the next offset parameter (if #continue_with is used)
+      # or the entire iteration set (if #set_iteration is used).
+      #
+      (run_iteration(base_url); @iteration_count += 1 ) if @iteration_extractor_args || @continue_clause_args
 
       while @iteration_set.at(@iteration_count)
         method = @options[:async] ? :run_iteration_async : :run_iteration
-        send(method, pattern)
+        send(method, base_url)
         @iteration_count += 1
       end
 
@@ -141,9 +140,8 @@ class IterativeScraper < ScraperBase
 
   protected
 
-  # TODO: Interpolation should work also with non GET parameters..
   #
-  # Interal method used to set the parameter which will be interpolated during the scrape iterations.
+  # Set the name (and optionally the default value) of the iteration parameter.
   #
   # param - a symbol or a hash containing the parameter name (as the key) and its default value.
   #
@@ -163,9 +161,8 @@ class IterativeScraper < ScraperBase
     @iteration_param_value or "1"
   end
 
-
   # 
-  # Runs an iteration performing an HTTP request per time (
+  # Runs an iteration performing blocking, synchronous HTTP request per time (
   # calls ScraperBase#run at each request)
   #
   # url - the current iteration's url.
@@ -180,7 +177,7 @@ class IterativeScraper < ScraperBase
   end
 
   #
-  # Runs an iteration asynchronously
+  # Runs an iteration performing parallel, non-blocking HTTP requests
   #
   # url - The current iteration's url.
   #
@@ -188,14 +185,14 @@ class IterativeScraper < ScraperBase
   #
   #
   def run_iteration_async(url)
-    error_message = "When then option 'async' is set to true the IterativeScraper class currently supports only HTTP method 'get'." +
-      "If you have to use another HTTP method, you must set the 'async' option to false."
+    error_message = "When then option 'async' is set, the IterativeScraper class currently supports only HTTP method 'get'." +
+      "If you have to use a HTTP method other than GET, you will have to set the 'async' option to false."
 
     raise NonGetAsyncRequestNotYetImplemented error_message unless @request_arguments[:method].nil? || @request_arguments[:method].downcase.to_sym == :get
 
     @urls << add_iteration_param(url)
 
-    if @iteration_set.size - 1 == @iteration_count
+    if @iteration_set[@iteration_count] == @iteration_set.last
       run_super(:run)
     end
   end
@@ -204,7 +201,6 @@ class IterativeScraper < ScraperBase
   #
   # Dynamically updates the request parameter hash with the 
   # current iteration parameter value.
-  #
   #
   # Returns nothing.
   #
@@ -258,7 +254,6 @@ class IterativeScraper < ScraperBase
 
   # 
   # Overrides ScraperBase#handle_response in order to apply the proc used to dynamically extract the iteration set.
-  # The proc called only once, only if it has been provided.
   #
   # TODO: update doc
   #
@@ -280,9 +275,9 @@ class IterativeScraper < ScraperBase
   def run_continue_clause(response_body, extractor_class)
     extractor = extractor_class.new(:continue, *@continue_clause_args)
     continue_value = extractor.extract_field(response_body)
+    #TODO: check if continue_value is valid
 
-    #todo: perform some checks here
-    @iteration_set << "" if @iteration_count == 0 && continue_value
+    #TODO: this line is wrong...
     @iteration_set <<  continue_value.to_s if continue_value
   end
 
