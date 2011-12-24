@@ -1,3 +1,4 @@
+require 'pry'
 class IterativeScraper < ScraperBase
 
   module Exceptions
@@ -111,6 +112,8 @@ class IterativeScraper < ScraperBase
   # Returns itself.
 
   def continue_with(param, *extractor_args)
+    raise Exceptions::NonGetAsyncRequestNotYetImplemented.new "the #continue_with method currently requires the 'async' option to be set to false" if @options[:async]
+
     @continue_clause_args = extractor_args
     set_iteration_param(param)
     self
@@ -121,7 +124,6 @@ class IterativeScraper < ScraperBase
 
       # run an extra iteration to determine the value of the next offset parameter (if #continue_with is used)
       # or the entire iteration set (if #set_iteration is used).
-      #
       (run_iteration(base_url); @iteration_count += 1 ) if @iteration_extractor_args || @continue_clause_args
 
       while @iteration_set.at(@iteration_count)
@@ -264,7 +266,6 @@ class IterativeScraper < ScraperBase
     format =  @options[:format] || run_super(:detect_format, response.headers_hash['Content-Type']) 
     extractor_class = format == :json ? JsonExtractor : DomExtractor
 
-
     run_iteration_extractor(response.body, extractor_class) if @response_count == 0 && @iteration_extractor_args
     run_continue_clause(response.body, extractor_class) if @continue_clause_args
 
@@ -277,8 +278,8 @@ class IterativeScraper < ScraperBase
     continue_value = extractor.extract_field(response_body)
     #TODO: check if continue_value is valid
 
-    #TODO: this line is wrong...
-    @iteration_set <<  continue_value.to_s if continue_value
+    @iteration_set << "" if @iteration_count == 0  #horrible hack: please refactor 
+    @iteration_set << continue_value.to_s if continue_value
   end
 
   def run_iteration_extractor(response_body, extractor_class)

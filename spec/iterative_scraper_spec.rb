@@ -102,7 +102,6 @@ describe IterativeScraper do
       end
 
       stub_http do |hydra, request, response|
-        binding.pry
         hydra.stub(:get, request.url).and_return(response)
         @params_sent << request.params[:p]
       end
@@ -116,7 +115,7 @@ describe IterativeScraper do
 
 
     describe "#run" do
-      it "params sent should be p=1, p=5, p=10, p=15, p=20", :failing => 'true' do
+      it "params sent should be p=1, p=5, p=10, p=15, p=20" do
         @params_sent.should eql([0, 5, 10, 15, 20].map &:to_s)
       end
     end
@@ -141,7 +140,7 @@ describe IterativeScraper do
         IterativeScraper.
           new("http://twizzer.net/timeline").
           loop_on(proc {}).
-          continue_with({:continue => ''}, shift_values).
+          continue_with(:continue, shift_values).
           run()
       end
 
@@ -150,10 +149,26 @@ describe IterativeScraper do
       # When #continue_with is used, it would be better avoid sending
       # an empty iteration_parameter
       #
-      it "Should run 5 times" do
+      it "Should run 5 times", :failing => 'true' do
         @continue_values.all? { |val| @values_sent.include? val.to_s }.should be_true
       end
 
+    end
+  end
+
+  context "using #continue_with with async = true" do
+    describe "#run" do
+      before do
+        @scraper = IterativeScraper.
+          new("http://twizzer.net/timeline", :async => true)
+      end
+
+      it "should raise an exception" do
+        expect { @scraper.continue_with(:continue, proc {}) }.to raise_exception(IterativeScraper::Exceptions::NonGetAsyncRequestNotYetImplemented)
+      end
+
+
+    
     end
   end
 
