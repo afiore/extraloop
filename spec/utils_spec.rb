@@ -24,7 +24,7 @@ describe Utils do
         context "trying to fetch a key that does not exist" do
           subject { @hash.get_in [:a, :b, :wrong, :even_worst ]}
 
-          it { should eql(nil)}
+          it { should eql(nil) }
         end
 
       end

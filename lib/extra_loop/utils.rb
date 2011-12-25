@@ -1,5 +1,3 @@
-require 'pp'
-
 module Utils
   module ScrapingHelpers
     #
@@ -42,22 +40,16 @@ module Utils
   end
 
   module DeepFetchable
+    def get_in(path)
+      keys, node = Array(path), self
 
-    def get_in(keys)
-      keys, current_node = Array(keys.clone), self
-
-      while current_node = current_node[keys.shift]
-        return current_node  if keys.empty?
+      keys.each_with_index do |key, index|
+        node = node[key]
+        next_key = keys[index + 1]
+        break unless node
       end
-    end
 
-
-    protected
-
-    def traverse
-      self.each do |key, value|
-
-      end
+      node
     end
   end
 
