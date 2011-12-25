@@ -1,3 +1,5 @@
+require 'pp'
+
 module Utils
   module ScrapingHelpers
     #
@@ -39,6 +41,25 @@ module Utils
     end
   end
 
+  module DeepFetchable
+
+    def get_in(keys)
+      keys, current_node = Array(keys.clone), self
+
+      while current_node = current_node[keys.shift]
+        return current_node  if keys.empty?
+      end
+    end
+
+
+    protected
+
+    def traverse
+      self.each do |key, value|
+
+      end
+    end
+  end
 
   module Support
     def symbolize_keys(hash)

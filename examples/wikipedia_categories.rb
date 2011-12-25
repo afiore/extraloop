@@ -33,7 +33,7 @@ request_arguments = { :params => params }
 #
 
 IterativeScraper.new(api_url, options, request_arguments).
-  loop_on(proc { |doc| doc['query']['categorymembers'] }).
+  loop_on(['query', 'categorymembers']).
     extract(:title).
     extract(:ns).
     extract(:type).
@@ -41,9 +41,7 @@ IterativeScraper.new(api_url, options, request_arguments).
   set_hook(:on_data, proc { |results|
     results.each { |record| all_results << record }
   }).
-  continue_with(:cmcontinue, proc { |doc, response| 
-    doc['query-continue']['categorymembers']['cmcontinue'] if doc['query-continue'] 
-  }).
+  continue_with(:cmcontinue, ['query-continue', 'categorymembers', 'cmcontinue']).
   run()
 
 puts "#{all_results.size} fetched"
