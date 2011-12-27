@@ -2,7 +2,7 @@ require 'pry'
 class JsonExtractor < ExtractorBase
 
   def initialize(*args)
-    @path = args[1] && args[1].is_a?(Array) ? args[1] : nil
+    @path = args[2] && args[2].is_a?(Array) ? args[2] : nil
     super(*args)
   end
 
@@ -10,8 +10,7 @@ class JsonExtractor < ExtractorBase
     output = node = node.is_a?(String) ? parse(node) : node
     output = node.get_in(@path) if @path
     output = node[@attribute.to_s] if @attribute
-    output = @callback.call(output, record) if @callback
-
+    output = @environment.run(output, record, &@callback) if @callback
 
     # when no attribute and no callback is provided, try fetching by field name
     if !@attribute && !@callback  
@@ -27,11 +26,11 @@ class JsonExtractor < ExtractorBase
     input = input.is_a?(String) ? parse(input) : input
     input = input.get_in(@path) if @path
 
-    @callback && Array(@callback.call(input)) || input
+    @callback && Array(@environment.run(input, &@callback)) || input
   end
 
   def parse(input)
     super(input)
-    (Yajl::Parser.new).parse(input).extend(Utils::DeepFetchable)
+    @environment.document = (Yajl::Parser.new).parse(input).extend(Utils::DeepFetchable)
   end
 end

@@ -273,7 +273,7 @@ class IterativeScraper < ScraperBase
 
 
   def run_continue_clause(response_body, extractor_class)
-    extractor = extractor_class.new(:continue, *@continue_clause_args)
+    extractor = extractor_class.new(:continue, ExtractionEnvironment.new(self), *@continue_clause_args)
     continue_value = extractor.extract_field(response_body)
     #TODO: check if continue_value is valid
 
@@ -282,7 +282,7 @@ class IterativeScraper < ScraperBase
   end
 
   def run_iteration_extractor(response_body, extractor_class)
-    @iteration_extractor =  extractor_class.new(*@iteration_extractor_args)
+    @iteration_extractor = extractor_class.new(*@iteration_extractor_args.insert(1, ExtractionEnvironment.new(self)))
     #NOTE: does this default_offset make any sense?
     @iteration_set = Array(default_offset) + @iteration_extractor.extract_list(response_body).map(&:to_s) if @iteration_extractor
   end

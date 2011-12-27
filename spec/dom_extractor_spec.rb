@@ -2,6 +2,9 @@ require 'helpers/spec_helper'
 
 describe DomExtractor do
   before(:each) do
+    stub(scraper = Object.new).options
+    stub(scraper).results
+    @env = ExtractionEnvironment.new(scraper)
     @html ||= <<-EOF
   <div class="entry">
     <p><a href="http://example.com">my dummy link</a></p>
@@ -22,13 +25,13 @@ describe DomExtractor do
   end
 
   describe "#new" do
-    subject { DomExtractor.new(:my_field, "p a", :href) }
+    subject { DomExtractor.new(:my_field, @env,  "p a", :href) }
      it { subject.field_name.should eql(:my_field) }
   end
 
   context "when no attribute is provided" do
     before do
-      @extractor = DomExtractor.new(:anchor, "p a")
+      @extractor = DomExtractor.new(:anchor, @env, "p a")
       @node = @extractor.parse(@html)
     end
 
@@ -41,7 +44,7 @@ describe DomExtractor do
 
   context "when an attribute is provided" do
     before do
-      @extractor = DomExtractor.new(:anchor, "p a", :href)
+      @extractor = DomExtractor.new(:anchor, @env, "p a", :href)
       @node = @extractor.parse(@html)
     end
 
@@ -53,7 +56,7 @@ describe DomExtractor do
 
   context "when a selector and a block is provided" do
     before do
-      @extractor = DomExtractor.new(:anchor, "p a", proc { |node|
+      @extractor = DomExtractor.new(:anchor, @env, "p a", proc { |node|
         node.text.gsub("dummy", "fancy")
       })
       @node = @extractor.parse(@html)
@@ -67,7 +70,7 @@ describe DomExtractor do
 
   context "when only a block is provided" do
     before do
-      @extractor = DomExtractor.new(:anchor, proc { |document|
+      @extractor = DomExtractor.new(:anchor, @env, proc { |document|
         document.at_css("p a").text.gsub(/dummy/,'fancy')
       })
       @node = @extractor.parse(@html)
@@ -81,7 +84,7 @@ describe DomExtractor do
 
   context "when only an attribute is provided" do
     before do
-      @extractor = DomExtractor.new(:url, :href)
+      @extractor = DomExtractor.new(:url, @env, :href)
       @node = @extractor.parse('<a href="hello-world">Hello</a>').at_css("a")
     end
     describe "#extract_field" do
@@ -92,7 +95,7 @@ describe DomExtractor do
 
   context "when nothing but a field name is provided" do
     before do
-      @extractor = DomExtractor.new(:url)
+      @extractor = DomExtractor.new(:url, @env)
       @node = @extractor.parse('<a href="hello-world">Hello</a>').at_css("a")
     end
     describe "#extract_field" do
@@ -104,7 +107,7 @@ describe DomExtractor do
   describe "extract_list" do
     context "no block provided" do
       before do
-        @extractor = DomExtractor.new(nil, "div.entry")
+        @extractor = DomExtractor.new(nil, @env, "div.entry")
         @node = @extractor.parse(@html)
       end
 
@@ -114,7 +117,7 @@ describe DomExtractor do
 
     context "block provided" do
       before do
-        @extractor = DomExtractor.new(nil, "div.entry", lambda { |nodeList|
+        @extractor = DomExtractor.new(nil, @env, "div.entry", lambda { |nodeList|
           nodeList.reject {|node| node.attr(:class).split(" ").include?('exclude')  }
         })
       end
@@ -127,7 +130,7 @@ describe DomExtractor do
   context "xml input" do
     describe "#parse" do
       before do 
-        @extractor = DomExtractor.new(nil, "entry")
+        @extractor = DomExtractor.new(nil, @env, "entry")
       end
 
       subject { @extractor.parse(@xml) }
@@ -139,7 +142,7 @@ describe DomExtractor do
   context "html input" do
     describe "#parse" do
       before do 
-        @extractor = DomExtractor.new(nil, "entry")
+        @extractor = DomExtractor.new(nil, @env, "entry")
       end
 
       subject { @extractor.parse(@html) }
@@ -150,7 +153,7 @@ describe DomExtractor do
   context "non-string input" do
     describe "#parse" do
       before do 
-        @extractor = DomExtractor.new(nil, "entry")
+        @extractor = DomExtractor.new(nil, @env, "entry")
       end
 
       it "Should raise an exception" do

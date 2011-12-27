@@ -1,13 +1,8 @@
 class ScraperBase
+  include Hookable
   include Utils::Support
 
-  module Exceptions
-    class HookArgumentError < StandardError
-    end
-  end
-
-
-  attr_reader :results
+  attr_reader :results, :options
 
   #
   # Public: Initalizes a web scraper.
@@ -49,12 +44,6 @@ class ScraperBase
     self
   end
 
-  def set_hook(hookname, handler)
-    raise Exceptions::HookArgumentError.new "handler must be a callable proc" unless handler.respond_to?(:call)
-    @hooks[hookname.to_sym] = handler
-    self
-  end
-
 
   # Public: Sets the scraper extraction loop.
   #
@@ -69,7 +58,7 @@ class ScraperBase
   #
 
   def loop_on(*args)
-    @loop_extractor_args = args.insert(0, nil)
+    @loop_extractor_args = args.insert(0, nil, ExtractionEnvironment.new(self))
     self
   end
 
@@ -86,7 +75,7 @@ class ScraperBase
   #
 
   def extract(*args)
-    @extractor_args << args
+    @extractor_args << args.insert(1, ExtractionEnvironment.new(self))
     self
   end
 
@@ -114,11 +103,6 @@ class ScraperBase
   end
 
   protected
-
-  def run_hook(hook, arguments)
-    @hooks[hook].call(*arguments) if @hooks.has_key?(hook)
-  end
-
 
   def issue_request(url)
 
@@ -153,11 +137,12 @@ class ScraperBase
   end
 
   def handle_response(response)
-    @response_count+=1
+    @response_count += 1
     @loop = prepare_loop(response)
     log("response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}")
     @loop.run
 
+    @environment = @loop.environment
     run_hook(:on_data, [@loop.records, response])
   end
 
@@ -166,7 +151,7 @@ class ScraperBase
     extractor_class = format == :json ? JsonExtractor : DomExtractor
     loop_extractor = extractor_class.new(*@loop_extractor_args)
     extractors = @extractor_args.map { |args|  extractor_class.new(*args) }
-    ExtractionLoop.new(loop_extractor, extractors, response.body, @hooks)
+    ExtractionLoop.new(loop_extractor, extractors, response.body, @hooks, self)
   end
 
   def detect_format(content_type)

@@ -2,6 +2,9 @@ require 'helpers/spec_helper'
 
 describe JsonExtractor do
   before(:each) do
+    stub(scraper = Object.new).options
+    stub(scraper).results
+    @env = ExtractionEnvironment.new(scraper)
     @json ||= lambda {
       file = File.open('fixtures/doc.json', 'r')
       content = file.read
@@ -12,7 +15,7 @@ describe JsonExtractor do
 
   describe "#initialize" do
     context("argument is a block") do
-      subject { JsonExtractor.new(:thing, proc  {}) }
+      subject { JsonExtractor.new(:thing, @env, proc  {}) }
 
       it { subject.field_name.should eql(:thing) }
       it { should_not respond_to(:callback) }
@@ -24,7 +27,7 @@ describe JsonExtractor do
 
     context "field_name and callback" do
       before do
-        @extractor = JsonExtractor.new(:from_user)
+        @extractor = JsonExtractor.new(:from_user, @env)
         @node = @extractor.parse(@json)['results'].first
       end
 
@@ -34,7 +37,7 @@ describe JsonExtractor do
 
     context "field_name and callback" do
       before do
-        @extractor = JsonExtractor.new(:from_user, proc { |node| node['from_user_name'] } )
+        @extractor = JsonExtractor.new(:from_user, @env, proc { |node| node['from_user_name'] } )
         @node = @extractor.parse(@json)['results'].first
       end
 
@@ -44,7 +47,7 @@ describe JsonExtractor do
 
     context "field_name and attribute" do
       before do
-        @extractor = JsonExtractor.new(:from_user, :from_user_name )
+        @extractor = JsonExtractor.new(:from_user, @env, :from_user_name )
         @node = @extractor.parse(@json)['results'].first
       end
 
@@ -54,7 +57,7 @@ describe JsonExtractor do
 
     context "field name, attribute, and callback " do
       before do
-        @extractor = JsonExtractor.new(:from_user, :from_user_name, proc { |username| username.downcase.gsub("\s","-")  } )
+        @extractor = JsonExtractor.new(:from_user, @env, :from_user_name, proc { |username| username.downcase.gsub("\s","-")  } )
         @node = @extractor.parse(@json)['results'].first
       end
 
@@ -64,7 +67,7 @@ describe JsonExtractor do
 
     context("field name and array (see Utils::DeepFetchable)") do
       before do 
-        @extractor = JsonExtractor.new(:from_user, ['results', 0, 'from_user'])
+        @extractor = JsonExtractor.new(:from_user, @env, ['results', 0, 'from_user'])
       end
       subject {  @extractor.extract_field(@json) }
       it { should eql("ludovickohn") }
@@ -72,7 +75,7 @@ describe JsonExtractor do
 
     context("field name, array, and callback") do
       before do 
-        @extractor = JsonExtractor.new(:from_user, ['results', 0, 'from_user'], proc { |username|  username.gsub("ckohn",'co') })
+        @extractor = JsonExtractor.new(:from_user, @env, ['results', 0, 'from_user'], proc { |username|  username.gsub("ckohn",'co') })
       end
       subject {  @extractor.extract_field(@json) }
       it { should eql("ludovico") }
@@ -85,7 +88,7 @@ describe JsonExtractor do
 
     context "using #get_in" do
       before do
-        @extractor = JsonExtractor.new(nil, ['results', 0..5])
+        @extractor = JsonExtractor.new(nil, @env, ['results', 0..5])
       end
 
       subject { @extractor.extract_list(@json) }
@@ -95,7 +98,7 @@ describe JsonExtractor do
 
     context "with json string input" do
       before do
-        @extractor = JsonExtractor.new(nil, proc { |data| data['results'] })
+        @extractor = JsonExtractor.new(nil, @env, proc { |data| data['results'] })
       end
 
       subject { @extractor.extract_list(@json) }
@@ -105,7 +108,7 @@ describe JsonExtractor do
 
     context "with pre-parsed input" do
       before do
-        @extractor = JsonExtractor.new(nil, proc { |data| data['results'] })
+        @extractor = JsonExtractor.new(nil, @env, proc { |data| data['results'] })
       end
 
       subject { @extractor.extract_list((Yajl::Parser.new).parse(@json)) }
@@ -118,7 +121,7 @@ describe JsonExtractor do
   context "non-string input" do
     describe "#parse" do
       before do 
-        @extractor = JsonExtractor.new(nil, proc {})
+        @extractor = JsonExtractor.new(nil, @env, proc {})
       end
 
       it "Should raise an exception" do
@@ -130,7 +133,7 @@ describe JsonExtractor do
   context "#json input" do
     describe "#parse" do
       before do
-        @extractor = JsonExtractor.new(nil, proc {})
+        @extractor = JsonExtractor.new(nil, @env, proc {})
       end
 
       subject { @extractor.parse(@json) }

@@ -14,6 +14,7 @@ class ExtractorBase
   #
   # Parameters:
   #   field_name  - The machine readable field name
+  #   environment - The object within which the extractor callback will be run (using run).
   #   selector:   - The css3 selector to be used to match a specific portion of a document (optional).
   #   callback    - A block of code to which the extracted node/attribute will be passed (optional).
   #   attribute:  - A node attribute. If provided, the attribute value will be returned (optional).
@@ -21,8 +22,10 @@ class ExtractorBase
   # Returns itself
   #
 
-  def initialize(field_name, *args)
+  def initialize(field_name, environment, *args)
     @field_name = field_name
+    @environment = environment
+
     @selector = args.find { |arg| arg.is_a?(String)}
     args.delete(@selector) if @selector
     @attribute = args.find { |arg| arg.is_a?(String) || arg.is_a?(Symbol) }

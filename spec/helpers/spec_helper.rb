@@ -1,6 +1,9 @@
 require 'rr'
 require 'pry'
-require '../lib/extra_loop.rb'
+
+base_path = File.expand_path(File.dirname(File.dirname(File.dirname(__FILE__))))
+
+load base_path + "/lib/extra_loop.rb"
 
 require 'helpers/scraper_helper'
 

@@ -12,7 +12,7 @@ class DomExtractor < ExtractorBase
     target = node = node.respond_to?(:document) ? node : parse(node)
     target = node.at_css(@selector)  if @selector
     target = target.attr(@attribute) if target.respond_to?(:attr) && @attribute
-    target = @callback.call(target, record) if @callback
+    target = @environment.run(target, record, &@callback) if @callback
 
     #if target is still a DOM node, return its text content
     target = target.text if target.respond_to?(:text)
@@ -31,12 +31,12 @@ class DomExtractor < ExtractorBase
   def extract_list(input)
     nodes = input.respond_to?(:document) ? input : parse(input)
     nodes = nodes.search(@selector) if @selector
-    @callback && @callback.call(nodes) || nodes
+    @callback && Array(@environment.run(nodes, &@callback)) || nodes
   end
 
   def parse(input)
     super(input)
-    is_xml(input) ? Nokogiri::XML(input) : Nokogiri::HTML(input)
+    @environment.document = is_xml(input) ? Nokogiri::XML(input) : Nokogiri::HTML(input)
   end
 
   def is_xml(input)

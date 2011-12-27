@@ -1,20 +1,20 @@
 class ExtractionLoop
+  include Hookable
 
   module Exceptions
     class UnsupportedFormat < StandardError; end
   end
 
-  attr_reader :records
-  attr_accessor :extractors, :document, :hooks, :children, :parent, :format
+  attr_reader :records, :environment
+  attr_accessor :extractors, :document, :hooks, :children, :parent, :scraper
 
-  def initialize(loop_extractor, extractors=[], document=nil, hooks = {})
+  def initialize(loop_extractor, extractors=[], document=nil, hooks = {}, scraper = nil)
     @loop_extractor = loop_extractor
     @extractors = extractors
     @document = @loop_extractor.parse(document)
     @records = []
     @hooks = hooks
-    @parent = nil
-    @format = format
+    @environment = ExtractionEnvironment.new(@scraper, @document, @records)
     self
   end
 
@@ -22,9 +22,9 @@ class ExtractionLoop
     run_hook(:before, @document)
 
     get_nodelist.each do |node|
-      run_hook(:before_extract, node)
+      run_hook(:before_extract, [node])
       @records << run_extractors(node)
-      run_hook(:after_extract, node, records.last)
+      run_hook(:after_extract, [node, records.last])
     end
 
     run_hook(:after, @records)
@@ -33,12 +33,6 @@ class ExtractionLoop
 
 
   private
-
-  def run_hook(hook, *arguments)
-    hook = hook.to_sym
-    @hooks[hook].call(*arguments) if @hooks.has_key?(hook)
-  end
-
   def get_nodelist
     @loop_extractor.extract_list(@document)
   end

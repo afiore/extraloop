@@ -62,13 +62,11 @@ describe ScraperBase do
     end
   end
 
-
-
   context "single url, no options provided (async => false)" do
     describe "#run" do
       before do
         @url = "http://localhost/fixture"
-        @results = []
+        results = []
 
         stub_http({}, :body => @fixture_doc) do |hydra, request, response|
           hydra.stub(:get, request.url).and_return(response)
@@ -78,7 +76,9 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| @results=records })
+          set_hook(:on_data, proc { |records| records.each { |record| results << record }})
+
+        @results = results
       end
 
 
@@ -98,7 +98,7 @@ describe ScraperBase do
           "http://localhost/fixture2",
           "http://localhost/fixture3",
         ]
-        @results = []
+        results = []
         @hydra_run_call_count = 0
 
         stub_http do |hydra, request, response|
@@ -110,14 +110,15 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| records.each { |record| @results << record } })
+          set_hook(:on_data, proc { |records| records.each { |record| results << record } })
 
+        @results = results
 
         @fake_loop = Object.new
         stub(@fake_loop).run { }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash)).times(3) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(3) { @fake_loop  }
       end
 
 
@@ -140,7 +141,7 @@ describe ScraperBase do
           "http://localhost/fixture4",
           "http://localhost/fixture5",
         ]
-        @results = []
+        results = []
         @hydra_run_call_count = 0
 
         stub_http({}, :body => @fixture_doc) do |hydra, request, response|
@@ -152,14 +153,15 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| records.each { |record| @results << record } })
+          set_hook(:on_data, proc { |records| records.each { |record| results << record } })
 
+        @results = results
 
         @fake_loop = Object.new
         stub(@fake_loop).run { }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash)).times(@urls.size) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(@urls.size) { @fake_loop  }
       end
 
 

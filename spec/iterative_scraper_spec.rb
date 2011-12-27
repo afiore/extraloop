@@ -61,7 +61,7 @@ describe IterativeScraper do
   context "(single url pattern, iteration_set is extractor, async => false )" do
     before(:each) do
 
-      @iteration_count = 0
+      iteration_count = 0
       @params_sent = []
       iteration_proc = proc {[2, 3, 4]}
 
@@ -78,8 +78,10 @@ describe IterativeScraper do
         new("http://whatever.net/search-stuff").
         set_iteration(:p, iteration_proc).
         loop_on(".whatever").
-        set_hook(:on_data, proc { @iteration_count += 1 }).
+        set_hook(:on_data, proc { iteration_count += 1 }).
         run()
+
+      @iteration_count = iteration_count
     end
 
     describe "#run" do
@@ -125,12 +127,10 @@ describe IterativeScraper do
     
     describe "#run" do
       before do
-        @continue_values = (5..10).to_a
+        continue_values = (5..10).to_a
         @values_sent = []
-        shift_values = proc { |data| @continue_values.shift }
+        shift_values = proc { |data| continue_values.shift }
 
-        #TODO: fix this! times should be 5, not 6
-        mock.proxy(shift_values).call(is_a(Hash), anything).times(@continue_values.size + 1)
 
         stub_http({}, {headers: "Content-Type: application/json", :body => '{"hello":"test"}' }) do |hydra, request, response|
           @values_sent << request.params[:continue]
@@ -142,6 +142,9 @@ describe IterativeScraper do
           loop_on(proc {}).
           continue_with(:continue, shift_values).
           run()
+
+        @continue_values = continue_values
+
       end
 
       #TODO: 
@@ -166,9 +169,6 @@ describe IterativeScraper do
       it "should raise an exception" do
         expect { @scraper.continue_with(:continue, proc {}) }.to raise_exception(IterativeScraper::Exceptions::NonGetAsyncRequestNotYetImplemented)
       end
-
-
-    
     end
   end
 

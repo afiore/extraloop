@@ -18,14 +18,16 @@ autoload :Typhoeus, "typhoeus"
 
 # Extraloop components
 
-autoload :Utils,            "#{base_path}/utils"
-autoload :ExtractorBase,    "#{base_path}/extractor_base"
-autoload :DomExtractor,     "#{base_path}/dom_extractor"
-autoload :JsonExtractor,    "#{base_path}/json_extractor"
-autoload :ExtractionLoop,   "#{base_path}/extraction_loop"
-autoload :ScraperBase,      "#{base_path}/scraper_base"
-autoload :Loggable,         "#{base_path}/loggable"
-autoload :IterativeScraper, "#{base_path}/iterative_scraper"
+autoload :Utils                 , "#{base_path}/utils"
+autoload :ExtractionEnvironment , "#{base_path}/extraction_environment"
+autoload :ExtractorBase         , "#{base_path}/extractor_base"
+autoload :DomExtractor          , "#{base_path}/dom_extractor"
+autoload :JsonExtractor         , "#{base_path}/json_extractor"
+autoload :ExtractionLoop        , "#{base_path}/extraction_loop"
+autoload :ScraperBase           , "#{base_path}/scraper_base"
+autoload :Loggable              , "#{base_path}/loggable"
+autoload :Hookable             , "#{base_path}/hookable"
+autoload :IterativeScraper      , "#{base_path}/iterative_scraper"
 
 
 # monkey patch scraperbase with the Loggable module.

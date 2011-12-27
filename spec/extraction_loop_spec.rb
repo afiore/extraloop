@@ -1,22 +1,26 @@
 require 'helpers/spec_helper'
 
 describe ExtractionLoop do
+
+  before(:each) do
+    @fake_scraper = stub!.options
+    stub(@fake_scraper).results
+  end
+
   describe "#new" do
-
-
     before do
       @mock_loop = Object.new
       stub(@mock_loop).parse {}
 
     end
 
-    subject { ExtractionLoop.new(@mock_loop) }
+    subject { ExtractionLoop.new(@mock_loop ) }
 
     it "should allow read/write access to public attributes" do
 
       {:extractors => [:fake, :fake],
        :document => nil,
-       :hooks => { :whaterver => true }
+       :hooks => { }
       }.each do |k, v|
         subject.send("#{k}=", v)
         subject.send(k).should eql(v)
@@ -26,6 +30,7 @@ describe ExtractionLoop do
 
   describe "run" do
     before(:each) do
+
       @extractors = [:a, :b].map do |field_name|
         object = Object.new
         stub(object).extract_field { |node, record| node[field_name] }
@@ -43,22 +48,17 @@ describe ExtractionLoop do
       }
 
 
-      before, before_extract, after_extract, after = *(1..4).to_a.map { Object.new }
+      before, before_extract, after_extract, after = *(1..4).to_a.map { proc {} }
+      hooks = {before: [before], before_extract: [before_extract], after_extract: [after_extract], after: [after]}
 
-      mock(before).call(is_a(Nokogiri::HTML::Document)) { }
-      mock(after).call(is_a(Array)) {}
-      mock(before_extract).call(is_a(Object)).times(10) {}
-      mock(after_extract).call(is_a(Object), is_a(OpenStruct)).times(10) {}
+      any_instance_of(ExtractionEnvironment) do |env|
+        mock(env).run.with_any_args.times(20 + 2)
+      end
 
-      @hooks = {
-        :before => before,
-        :before_extract => before_extract,
-        :after_extract => after_extract,
-        :after => after
-      }
-
-      @extraction_loop = ExtractionLoop.new(@loop_extractor, @extractors, "fake document", @hooks).run
+      @extraction_loop = ExtractionLoop.new(@loop_extractor, @extractors, "fake document", hooks, @fake_scraper).run
     end
+
+    subject { @extraction_loop.run }
 
     it "should produce 10 records" do
       @extraction_loop.records.size.should eql(10)
