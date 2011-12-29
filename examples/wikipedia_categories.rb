@@ -39,7 +39,7 @@ IterativeScraper.new(api_url, options, request_arguments).
     extract(:ns).
     extract(:type).
     extract(:timestamp).
-  set_hook(:on_data, proc { |results|
+  on(:data, proc { |results|
     results.each { |record| all_results << record }
   }).
   continue_with(:cmcontinue, ['query-continue', 'categorymembers', 'cmcontinue']).

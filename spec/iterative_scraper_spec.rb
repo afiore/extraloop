@@ -78,14 +78,14 @@ describe IterativeScraper do
         new("http://whatever.net/search-stuff").
         set_iteration(:p, iteration_proc).
         loop_on(".whatever").
-        set_hook(:on_data, proc { iteration_count += 1 }).
+        set_hook(:data, proc { iteration_count += 1 }).
         run()
 
       @iteration_count = iteration_count
     end
 
     describe "#run" do
-      it "The :on_data hook should be called 4 times" do
+      it "The :data hook should be called 4 times" do
         @iteration_count.should eql(4)
       end
 

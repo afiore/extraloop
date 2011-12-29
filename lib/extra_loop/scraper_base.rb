@@ -143,7 +143,7 @@ class ScraperBase
     @loop.run
 
     @environment = @loop.environment
-    run_hook(:on_data, [@loop.records, response])
+    run_hook(:data, [@loop.records, response])
   end
 
   def prepare_loop(response)

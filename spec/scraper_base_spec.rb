@@ -76,7 +76,7 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| records.each { |record| results << record }})
+          set_hook(:data, proc { |records| records.each { |record| results << record }})
 
         @results = results
       end
@@ -110,12 +110,13 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| records.each { |record| results << record } })
+          set_hook(:data, proc { |records| records.each { |record| results << record } })
 
         @results = results
 
         @fake_loop = Object.new
         stub(@fake_loop).run { }
+        stub(@fake_loop).environment { ExtractionEnvironment.new }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
         mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(3) { @fake_loop  }
@@ -153,12 +154,13 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:on_data, proc { |records| records.each { |record| results << record } })
+          set_hook(:data, proc { |records| records.each { |record| results << record } })
 
         @results = results
 
         @fake_loop = Object.new
         stub(@fake_loop).run { }
+        stub(@fake_loop).environment { ExtractionEnvironment.new }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
         mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(@urls.size) { @fake_loop  }

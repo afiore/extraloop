@@ -12,7 +12,7 @@ IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt", :log => {
      extract(:source, "br", proc { |node|
        node.next.text.split("-").first
      }).
-   set_hook(:on_data, proc { |data, response|
+   on(:data, proc { |data, response|
      data.each { |record| results << record }
    }).
    run()
