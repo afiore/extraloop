@@ -57,7 +57,7 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 ### Extractors
 
-ExtraLoop allows to fetch structured records from a document by looping through a list of elements and extracting a set of fields from each of them.
+ExtraLoop allows to fetch structured records from a document by looping through a list of elements (matching a given selector or a proc) and extracting a set of fields from each of them. While the `loop_on` method sets such loop, the `extract` method uses fetches part of a document element (e.g. A news title, or url) and assings it to a record field.
 
 ### Iteration methods:
 
