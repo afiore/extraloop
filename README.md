@@ -55,10 +55,9 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
      * `loglevel`  - a symbol specifying the desired log level (defaults to `:info`).
      * `appenders` - a list of Logging.appenders object (defaults to `Logging.appenders.sterr`).
 
+### Extractors
 
-### Extractors:
-
-
+ExtraLoop allows to fetch structured records from a document by looping through a list of elements and extracting a set of fields from each of them.
 
 ### Iteration methods:
 
