@@ -58,7 +58,7 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 ### Extractors
 
-ExtraLoop allows to fetch structured data from online documents by looping through a list of elements matching a given selector. For each of the matched element, an arbitrary set of fields can be extracted. While the `loop_on` method sets up such loop, the `extract` method extracts a piece of information from an element (e.g. a story's title) and and stores it into a record's field. The two methods behave similarly as they both wrap internally the `DomExtractor` and the `JsonExtractor` classes. All the following snippets are valid invocations of the `loop_on` method.
+ExtraLoop allows to fetch structured data from online documents by looping through a list of elements matching a given selector. For each of the matched element, an arbitrary set of fields can be extracted. While the `loop_on` method sets up such loop, the `extract` method extracts a piece of information from an element (e.g. a story's title) and and stores it into a record's field.
 
 
     # using a CSS3 or an XPath selector
@@ -72,8 +72,8 @@ ExtraLoop allows to fetch structured data from online documents by looping throu
 
     loop_on('div.post', proc { |posts| posts.reject {|post| post.attr(:class) == 'sticky' }})
 
-Similarly, the `extract` method may also be called with a selector, a proc or a combination of the two. By default, when parsing DOM documents, `extract` will call
-`Nokogiri::XML::Node#text()`. Alternatively, `extract` can also be passed an attribute name or a proc as a third argument; this will be applyied in the context of the matching element. 
+Both the `loop_on` and the `extract` methods may be called with a selector, a proc or a combination of the two. By default, when parsing DOM documents, `extract` will call
+`Nokogiri::XML::Node#text()`. Alternatively, `extract` can also be passed an attribute name or a proc as a third argument; this will be evaluated in the context of the matching element. 
 
     # extract a story's title 
     extract(:title, 'h3')
@@ -86,24 +86,35 @@ Similarly, the `extract` method may also be called with a selector, a proc or a 
       node.css("p").map(&:text).join("\n") 
     })
 
-#### Non DOM documents
+#### Extracting from JSON Documents
 
-At each HTTP response, ExtraLoop will try to automatically detect the scraped document format by looking at the `ContentType` header sent by the server (this value may e overriden by explicitly specifying a `:format` in the scraper's initialization options). If the format is JSON, the document will be parsed using the `yajl` parser and converted into a hash. In this case, both the `loop_on` and the `extract` methods will still accept the same arguments, with sole the exception of the CSS3/XPath selector, which are specific to DOM documents. 
+While processing each HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at the `ContentType` header sent by the server (this value may be overriden by providing a `:format` key in the scraper's initialization options).
+When the format is JSON, the document is parsed using the `yajl` parser and converted into a hash. In this case, both the `loop_on` and the `extract` methods still behave as documented above, with only the exception of the CSS3/XPath selector string, which is specific of DOM documents.
+When working with JSON documents, it is possible to loop over an arbitrary portion of a document by simply passing a proc to `loop_on`.
 
-However, ExtraLoop does provide a light weight selector mechanism which arguably simplifyies extracting content from parsed json documents. 
- 
-    // fetch the value of a nested key from a hash
-
-    loop_on(['query', 'categorymembers'])
-
-    // fetch the same value using a proc
-    
+    # Fetch a portion of a document using a proc
     loop_on(proc { |data| data['query']['categorymembers'] })
 
-    // see also examples/wikipedia_categories.rb
+Alternatively, the same loop can be defined by passing an array of nested keys, locating the position of the document fragments.
 
+    # Fetch the same document portion above using a hash path
+    loop_on(['query', 'categorymembers'])
 
- 
+Passing an array of nested keys will also work fine with the `extract` method.
+When fetching fields from a JSON document fragment, `extract` will try to use the
+field name as a key if no key path or key string is provided.
+
+    # current node:
+    # 
+    # {
+    #  'from_user' => "johndoe", 
+    #  'text' => 'bla bla bla',
+    #  'from_user_id'..
+    # }
+    
+
+    extract(:from_user)
+    # => "johndoe"
 
 
 ### Iteration methods:
