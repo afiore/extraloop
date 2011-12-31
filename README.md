@@ -57,11 +57,26 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 ### Extractors
 
-ExtraLoop allows to fetch structured records from a document by looping through a list of elements matching a given selector or proc, and extracting an arbitrary set of fields from each of them. While the `loop_on` method sets up such loop, the `extract` method fetches a piece of information from an element (e.g. A news title, or url) and assings it to a record. The two methods behve similarly as both of them internally use the `DomExtractor` and the `JsonExtractor` classes. Both of them accept either a selector, or a ruby proc, or both a selector and a proc (in this case, the proc will be called with the element/s matching the selector as its first argument.
+ExtraLoop allows to fetch structured data from online document by looping through a list of elements matching a given selector or Proc.
+For each of the matched element, an arbitrary set of fields can be extracted. 
+While the `loop_on` method sets up such loop, the `extract` method extracts a piece of information from an element (e.g. a story's 
+title) and stores it as a field in a record. The two methods behave similarly as they both wrap internally the `DomExtractor` and the `JsonExtractor` classes.
+All the following snippets are valid invocations of the `loop_on` method.
 
+
+    # using a CSS3 or an Xpath selector
     loop_on('div.post')
+
+    # using a proc as a selector
+
     loop_on(proc { |doc| doc.search('div.post') })
+
+    # using both a selector and a proc (the result of applying a selector is passed on as the first argument of the proc)
+
     loop_on('div.post', proc { |posts| posts.reject {|post| post.attr(:class) == 'sticky' }})
+
+
+
 
 
 
