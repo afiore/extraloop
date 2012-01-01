@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.8.10'
 
   s.name              = 'extraloop'
-  s.version           = '0.0.1'
+  s.version           = '0.0.2'
   s.date              = '2012-01-01'
   s.rubyforge_project = 'extraloop'
 
@@ -13,13 +13,12 @@ Gem::Specification.new do |s|
 
   s.authors  = ["Andrea Fiore"]
   s.email    = 'andrea.giulio.fiore@googlemail.com'
-  s.homepage = 'http://github.com/afiore/extra_loop'
+  s.homepage = 'http://github.com/afiore/extraloop'
 
   s.require_paths = %w[lib]
   s.executables = []
 
   s.rdoc_options = ["--charset=UTF-8"]
-  s.extra_rdoc_files = %w[changelog.md]
 
   s.add_runtime_dependency('yajl-ruby', "~> 1.1.0")
   s.add_runtime_dependency('nokogiri', "~> 1.5.0")
