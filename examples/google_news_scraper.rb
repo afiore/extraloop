@@ -2,7 +2,7 @@ require '../lib/extraloop'
 
 results = []
 
-IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt", :log => {
+ExtraLoop::IterativeScraper.new("https://www.google.com/search?tbm=nws&q=Egypt", :log => {
   :log_level => :debug,
   :appenders => [Logging.appenders.stderr ]
 }).set_iteration(:start, (1..101).step(10)).

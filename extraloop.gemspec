@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.8.10'
 
   s.name              = 'extraloop'
-  s.version           = '0.0.2'
+  s.version           = '0.0.3'
   s.date              = '2012-01-01'
   s.rubyforge_project = 'extraloop'
 
@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency('rspec', "~> 2.7.1")
   s.add_development_dependency('rr', "~> 1.0.4")
+  s.add_development_dependency('pry', "~> 0.9.7.4")
   
   # = MANIFEST =
   s.files = %w[

@@ -33,7 +33,7 @@ request_arguments = { :params => params }
 # (used in the Google News example).
 #
 
-IterativeScraper.new(api_url, options, request_arguments).
+ExtraLoop::IterativeScraper.new(api_url, options, request_arguments).
   loop_on(['query', 'categorymembers']).
     extract(:title).
     extract(:ns).

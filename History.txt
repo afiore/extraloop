@@ -1,2 +1,8 @@
-== 0.0.0 / 2011-01-01
+== 0.0.3  / 2011-01-01
+  * namespaced all classes into the ExtraLoop module
+
+== 0.0.2  / 2011-01-01
+  * changed repository URL
+
+== 0.0.1  / 2011-01-01
   * Project Birthday!
