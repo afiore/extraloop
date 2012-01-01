@@ -14,7 +14,7 @@ A basic scraper that fetches the top 25 websites from Alexa's daily top 100 list
 
     results = nil
 
-    Scraper.
+    ExtraLoop::ScraperBase.
       new("http://www.alexa.com/topsites").
       loop_on("li.site-listing").
         extract(:site_name, "h2").
@@ -29,7 +29,7 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
     results = []
 
-    IterativeScraper.
+    ExtraLoop::IterativeScraper.
        new("https://www.google.com/search?tbm=nws&q=Egypt").
        set_iteration(:start, (1..101).step(10)).
        loop_on("h3", proc { |nodes| nodes.map(&:parent) }).
