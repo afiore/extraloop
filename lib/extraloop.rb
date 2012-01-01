@@ -1,4 +1,4 @@
-base_path = File.expand_path(File.dirname(__FILE__) + "/extra_loop"  )
+base_path = File.expand_path(File.dirname(__FILE__) + "/extraloop"  )
 
 # Standard library
 autoload :OpenStruct, "ostruct"

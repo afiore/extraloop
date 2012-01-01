@@ -1,4 +1,4 @@
-require '../lib/extra_loop'
+require '../lib/extraloop'
 
 results = []
 

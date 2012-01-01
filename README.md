@@ -1,9 +1,8 @@
 # Extra Loop
 
-A Ruby library for extracting structured datasets from websites and web based APIs. 
+A Ruby library for extracting data from websites and web based APIs. 
 Supports most common document formats (i.e. HTML, XML, and JSON), and comes with a handy mechanism 
 for iterating over paginated datasets.
-
 
 ### Installation:
 

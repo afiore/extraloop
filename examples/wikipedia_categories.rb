@@ -1,4 +1,4 @@
-require '../lib/extra_loop'
+require '../lib/extraloop'
 
 wikipedia_baseurl = "http://en.wikipedia.org"
 endpoint_url = "/w/api.php"
