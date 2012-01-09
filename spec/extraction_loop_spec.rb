@@ -31,6 +31,10 @@ describe ExtractionLoop do
   describe "run" do
     before(:each) do
 
+      @fake_scraper = Object.new
+      stub(@fake_scraper).options {{}}
+      stub(@fake_scraper).results {  }
+
       @extractors = [:a, :b].map do |field_name|
         object = Object.new
         stub(object).extract_field { |node, record| node[field_name] }
@@ -54,6 +58,7 @@ describe ExtractionLoop do
       any_instance_of(ExtractionEnvironment) do |env|
         mock(env).run.with_any_args.times(20 + 2)
       end
+
 
       @extraction_loop = ExtractionLoop.new(@loop_extractor, @extractors, "fake document", hooks, @fake_scraper).run
     end
