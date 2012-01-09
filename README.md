@@ -20,9 +20,7 @@ A basic scraper that fetches the top 25 websites from Alexa's daily top 100 list
         extract(:site_name, "h2").
         extract(:url, "h2 a").
         extract(:description, ".description").
-      on(:data, proc { |data|
-        results = data
-      }).
+      on(:data, proc { |data| results = data }).
       run()
 
 An Iterative Scraper that fetches URL, title, and publisher from some 110 Google News articles mentioning the keyword 'Egypt'.
@@ -57,8 +55,9 @@ An Iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 ### Extractors
 
-ExtraLoop allows to fetch structured data from online documents by looping through a list of elements matching a given selector. For each of the matched element, an arbitrary set of fields can be extracted. While the `loop_on` method sets up such loop, the `extract` method extracts a piece of information from an element (e.g. a story's title) and and stores it into a record's field.
-
+ExtraLoop allows to fetch structured data from online documents by looping through a list of elements matching a given selector.
+For each matched element, an arbitrary set of fields can be extracted. While the `loop_on` method sets up such loop, the `extract` 
+method extracts a piece of information from an element (e.g. a story's title) and and stores it into a record's field.
 
     # using a CSS3 or an XPath selector
     loop_on('div.post')
@@ -67,12 +66,12 @@ ExtraLoop allows to fetch structured data from online documents by looping throu
 
     loop_on(proc { |doc| doc.search('div.post') })
 
-    # using both a selector and a proc (matched elements are passed in to the proc as its first argument )
+    # using both a selector and a proc (matched elements are passed in as the first argument of the proc )
 
     loop_on('div.post', proc { |posts| posts.reject { |post| post.attr(:class) == 'sticky' }})
 
 Both the `loop_on` and the `extract` methods may be called with a selector, a proc or a combination of the two. By default, when parsing DOM documents, `extract` will call
-`Nokogiri::XML::Node#text()`. Alternatively, `extract` can also be passed an attribute name or a proc as a third argument; this will be evaluated in the context of the matching element. 
+`Nokogiri::XML::Node#text()`. Alternatively, `extract` also accepts an attribute name or a proc as a third argument, this will be evaluated in the context of the matching element. 
 
     # extract a story's title 
     extract(:title, 'h3')
@@ -87,14 +86,19 @@ Both the `loop_on` and the `extract` methods may be called with a selector, a pr
 
 #### Extracting from JSON Documents
 
-While processing each HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at the `ContentType` header sent by the server (this value may be overriden by providing a `:format` key in the scraper's initialization options).
-When the format is JSON, the document is parsed using the `yajl` parser and converted into a hash. In this case, both the `loop_on` and the `extract` methods still behave as documented above, with the sole exception of the CSS3/XPath selector string, which is specific of DOM documents.
+While processing each HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at 
+the `ContentType` header sent by the server (this value may be overriden by providing a `:format` key in the scraper's 
+initialization options). When the format is JSON, the document is parsed using the `yajl` parser and converted into a hash. 
+In this case, both the `loop_on` and the `extract` methods still behave as illustrated above, with the sole exception 
+of the CSS3/XPath selector string, which is specific of DOM documents. 
+
 When working with JSON data, you can just use a proc and return the document elements you want to loop on.
 
     # Fetch a portion of a document using a proc
     loop_on(proc { |data| data['query']['categorymembers'] })
 
-Alternatively, the same loop can be defined by passing an array of keys pointing at an object located at several levels of depth into the parsed document hash.
+Alternatively, the same loop can be defined by passing an array of keys pointing at a value located 
+at several levels of depth down into the parsed document hash.
 
     # Fetch the same document portion above using a hash path
     loop_on(['query', 'categorymembers'])
@@ -116,18 +120,20 @@ field name as a hash key if no key path or key string is provided.
 
 ### Iteration methods:
 
-The `IterativeScraper` class comes with two methods for defining how a scraper should loop over paginated content. 
+The `IterativeScraper` class comes with two methods for defining how a scraper should loop over paginated content.
 
-
-    #set_iteration(iteration_parameter, array_range_or_proc)
+___#set_iteration(iteration_parameter, array_range_or_proc)___
 
 * `iteration_parameter` - A symbol identifying the request parameter that the scraper will use as offset in order to iterate over the paginated content.
 * `array_or_range_or_proc` - Either an explicit set of values or a block of code. If provided, the block is called with the parsed document as its first argument. Its return value is then used to shift, at each iteration, the value of the iteration parameter. If the block fails to return a non empty array, the iteration stops.
 
 The second iteration methods, `#continue_with`, allows to continue iterating untill an arbitrary block of code returns a positive, non-nil value.
 
-    #continue_with(iteration_parameter, block)
+___#continue_with(iteration_parameter, block)___
 
 * `iteration_parameter` - the scraper' iteration parameter.
 * `block` - An arbitrary block of ruby code, its return value will be used to determine the value of the next iteration's offset parameter.
 
+### Running tests
+
+ExtraLoop uses `rspec` and `rr` as its testing framework. To run the tests, cd into the `spec` directory and run `rspec *`.

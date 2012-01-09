@@ -33,7 +33,7 @@ describe ExtractionLoop do
 
       @fake_scraper = Object.new
       stub(@fake_scraper).options {{}}
-      stub(@fake_scraper).results {  }
+      stub(@fake_scraper).results { }
 
       @extractors = [:a, :b].map do |field_name|
         object = Object.new
