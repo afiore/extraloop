@@ -4,6 +4,7 @@ module ExtraLoop
 
   class ExtractionEnvironment
     attr_accessor :document
+    attr_reader :scraper
 
     def initialize(scraper=nil, document=nil, records=nil)
       if scraper

@@ -15,7 +15,7 @@ module ExtraLoop
       @document = @loop_extractor.parse(document)
       @records = []
       @hooks = hooks
-      @environment = ExtractionEnvironment.new(@scraper, @document, @records)
+      @environment = ExtractionEnvironment.new(scraper, @document, @records)
       self
     end
 

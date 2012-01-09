@@ -240,7 +240,7 @@ module ExtraLoop
     #
 
     def run_super(method, args=[])
-      self.class.superclass.instance_method(method).bind(self).call(*args)
+      ExtraLoop::ScraperBase.instance_method(method).bind(self).call(*args)
     end
 
 

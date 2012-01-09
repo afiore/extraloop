@@ -67,9 +67,9 @@ ExtraLoop allows to fetch structured data from online documents by looping throu
 
     loop_on(proc { |doc| doc.search('div.post') })
 
-    # using both a selector and a proc (the result of applying a selector is passed on as the first argument of the proc)
+    # using both a selector and a proc (matched elements are passed in to the proc as its first argument )
 
-    loop_on('div.post', proc { |posts| posts.reject {|post| post.attr(:class) == 'sticky' }})
+    loop_on('div.post', proc { |posts| posts.reject { |post| post.attr(:class) == 'sticky' }})
 
 Both the `loop_on` and the `extract` methods may be called with a selector, a proc or a combination of the two. By default, when parsing DOM documents, `extract` will call
 `Nokogiri::XML::Node#text()`. Alternatively, `extract` can also be passed an attribute name or a proc as a third argument; this will be evaluated in the context of the matching element. 
@@ -88,20 +88,19 @@ Both the `loop_on` and the `extract` methods may be called with a selector, a pr
 #### Extracting from JSON Documents
 
 While processing each HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at the `ContentType` header sent by the server (this value may be overriden by providing a `:format` key in the scraper's initialization options).
-When the format is JSON, the document is parsed using the `yajl` parser and converted into a hash. In this case, both the `loop_on` and the `extract` methods still behave as documented above, with only the exception of the CSS3/XPath selector string, which is specific of DOM documents.
-When working with JSON documents, it is possible to loop over an arbitrary portion of a document by simply passing a proc to `loop_on`.
+When the format is JSON, the document is parsed using the `yajl` parser and converted into a hash. In this case, both the `loop_on` and the `extract` methods still behave as documented above, with the sole exception of the CSS3/XPath selector string, which is specific of DOM documents.
+When working with JSON data, you can just use a proc and return the document elements you want to loop on.
 
     # Fetch a portion of a document using a proc
     loop_on(proc { |data| data['query']['categorymembers'] })
 
-Alternatively, the same loop can be defined by passing an array of nested keys, locating the position of the document fragments.
+Alternatively, the same loop can be defined by passing an array of keys pointing at an object located at several levels of depth into the parsed document hash.
 
     # Fetch the same document portion above using a hash path
     loop_on(['query', 'categorymembers'])
 
-Passing an array of nested keys will also work fine with the `extract` method.
-When fetching fields from a JSON document fragment, `extract` will try to use the
-field name as a key if no key path or key string is provided.
+When fetching fields from a portion of a JSON document, `extract` will use the
+field name as a hash key if no key path or key string is provided.
 
     # current node:
     # 
@@ -110,9 +109,8 @@ field name as a key if no key path or key string is provided.
     #  'text' => 'bla bla bla',
     #  'from_user_id'..
     # }
-    
 
-    extract(:from_user)
+    # >> extract(:from_user)
     # => "johndoe"
 
 
