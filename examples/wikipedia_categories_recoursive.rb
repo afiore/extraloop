@@ -1,4 +1,5 @@
 require '../lib/extraloop'
+require 'pry'
 
 class WikipediaCategoryScraper < ExtraLoop::IterativeScraper
   attr_accessor :members
@@ -18,7 +19,7 @@ class WikipediaCategoryScraper < ExtraLoop::IterativeScraper
       :list => 'categorymembers',
       :format => 'json',
       :cmtitle => "Category:#{category.gsub(/^Category\:/,'')}",
-      :cmlimit => "100",
+      :cmlimit => "500",
       :cmtype => 'page|subcat',
       :cmdir => 'asc',
       :cmprop => 'ids|title|type|timestamp'
@@ -38,14 +39,12 @@ class WikipediaCategoryScraper < ExtraLoop::IterativeScraper
       extract(:type).
       extract(:timestamp).
     on(:data, proc { |results|
+      puts "#{"\t" * (@options[:depth] - 2).abs }  #{@scraper.request_arguments[:params][:cmtitle]}"
       categories = results.select{ |record| record.ns === 14  }.each { |category| results.delete(category) }
 
-      results.each do |record|
-      end
 
       categories.each do |record|
-        # Instanciate a sub scraper if the current depth is greater than zero
-        # and the category member is a sub category.
+        # Instanciate a sub scraper if the current depth is greater than zero and the category member is a sub category.
         WikipediaCategoryScraper.new(record.title, @options[:depth] - 1, @scraper.request_arguments[:params][:cmtitle] ).run unless @options[:depth] <= 0
       end
 
