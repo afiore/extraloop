@@ -4,8 +4,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.8.10'
 
   s.name              = 'extraloop'
-  s.version           = '0.0.3'
-  s.date              = '2012-01-01'
+  s.version           = '0.0.4'
+  s.date              = '2012-01-14'
   s.rubyforge_project = 'extraloop'
 
   s.summary     = "A toolkit for online data extraction."

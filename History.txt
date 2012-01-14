@@ -1,3 +1,6 @@
+== 0.0.4  / 2011-01-14
+  * fixed a bug which prevented from subclassing `IterativeScraper` instances
+
 == 0.0.3  / 2011-01-01
   * namespaced all classes into the ExtraLoop module
 

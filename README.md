@@ -122,18 +122,21 @@ field name as a hash key if no key path or key string is provided.
 
 The `IterativeScraper` class comes with two methods for defining how a scraper should loop over paginated content.
 
-___#set_iteration(iteration_parameter, array_range_or_proc)___
+_set_iteration(iteration_parameter, array_range_or_proc)_
 
 * `iteration_parameter` - A symbol identifying the request parameter that the scraper will use as offset in order to iterate over the paginated content.
 * `array_or_range_or_proc` - Either an explicit set of values or a block of code. If provided, the block is called with the parsed document as its first argument. Its return value is then used to shift, at each iteration, the value of the iteration parameter. If the block fails to return a non empty array, the iteration stops.
 
 The second iteration methods, `#continue_with`, allows to continue iterating untill an arbitrary block of code returns a positive, non-nil value.
 
-___#continue_with(iteration_parameter, block)___
+_continue_with(iteration_parameter, block)_
 
 * `iteration_parameter` - the scraper' iteration parameter.
 * `block` - An arbitrary block of ruby code, its return value will be used to determine the value of the next iteration's offset parameter.
 
 ### Running tests
 
-ExtraLoop uses `rspec` and `rr` as its testing framework. To run the tests, cd into the `spec` directory and run `rspec *`.
+ExtraLoop uses `rspec` and `rr` as its testing framework. The test suite can be run by calling the `rspec` executable from within the `spec` directory:
+
+    cd spec 
+    rspec *
