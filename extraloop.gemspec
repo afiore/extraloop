@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency('typhoeus', "~> 0.3.2")
   s.add_runtime_dependency('logging', "~> 0.6.1")
 
-  s.add_development_dependency('rspec', "~> 2.7.1")
+  s.add_development_dependency('rspec', "~> 2.7.0")
   s.add_development_dependency('rr', "~> 1.0.4")
   s.add_development_dependency('pry', "~> 0.9.7.4")
   
