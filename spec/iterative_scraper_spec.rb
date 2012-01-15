@@ -90,7 +90,7 @@ describe IterativeScraper do
       end
 
       it "should have sent p=1, p=2, p=3, p=4 as request parameters" do
-        @params_sent.should eql(["1", "2", "3", "4"])
+        @params_sent.should eql([nil, "2", "3", "4"])
       end
     end
   end

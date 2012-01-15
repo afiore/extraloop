@@ -209,7 +209,7 @@ module ExtraLoop
     def update_request_params!
       offset = @iteration_set.at(@iteration_count) || default_offset
       @request_arguments[:params] ||= {}
-      @request_arguments[:params][@iteration_param.to_sym] = offset
+      @request_arguments[:params][@iteration_param.to_sym] = offset if @iteration_count > 0
     end
 
 
@@ -246,7 +246,7 @@ module ExtraLoop
 
     def issue_request(url)
       # remove continue argument if this is the first iteration
-      @request_arguments[:params].delete(@iteration_param.to_sym) if @continue_clause_args && @iteration_count == 0
+      #@request_arguments[:params].delete(@iteration_param.to_sym) if @continue_clause_args && @iteration_count == 0
       super(url)
       # clear previous value of iteration parameter
       @request_arguments[:params].delete(@iteration_param.to_sym) if @request_arguments[:params] && @request_arguments[:params].any?
