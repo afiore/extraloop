@@ -6,9 +6,8 @@ module ExtraLoop
       end
     end
 
-    def set_hook(hookname, handler)
+    def set_hook(hookname, &handler)
       @hooks ||= {}
-      raise Exceptions::HookArgumentError.new "handler must be a callable proc" unless handler.respond_to?(:call)
       @hooks[hookname.to_sym] ? @hooks[hookname.to_sym].push(handler) : @hooks[hookname.to_sym] = [handler]
       self
     end

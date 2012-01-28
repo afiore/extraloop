@@ -52,13 +52,15 @@ module ExtraLoop
     #
     #
     # selector  - The CSS3 selector identifying the node list over which iterate (optional).
-    # callback  - A block of code (optional).
     # attribute - An attribute name (optional).
+    #
+    # callback  - A block of code (optional).
     #
     # Returns itself.
     #
 
-    def loop_on(*args)
+    def loop_on(*args, &block)
+      args << block if block
       @loop_extractor_args = args.insert(0, nil, ExtractionEnvironment.new(self))
       self
     end
@@ -75,7 +77,8 @@ module ExtraLoop
     #
     #
 
-    def extract(*args)
+    def extract(*args, &block)
+      args << block if block
       @extractor_args << args.insert(1, ExtractionEnvironment.new(self))
       self
     end

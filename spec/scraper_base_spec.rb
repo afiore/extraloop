@@ -24,14 +24,8 @@ describe ScraperBase do
   end
 
   describe "#set_hook" do
-    subject { @scraper.set_hook(:after, proc {}) }
+    subject { @scraper.set_hook(:after, &proc {}) }
     it { should be_an_instance_of(ScraperBase)  }
-  end
-
-  describe "#set_hook" do
-    it "should raise exception if no proc is provided" do
-      expect { @scraper.set_hook(:after, :method) }.to raise_exception(ScraperBase::Exceptions::HookArgumentError)
-    end
   end
 
   context "request params in both the url and the arguments hash" do
@@ -76,7 +70,7 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:data, proc { |records| records.each { |record| results << record }})
+          set_hook(:data, &proc { |records| records.each { |record| results << record }})
 
         @results = results
       end
@@ -110,7 +104,7 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:data, proc { |records| records.each { |record| results << record } })
+          set_hook(:data, &proc { |records| records.each { |record| results << record } })
 
         @results = results
 
@@ -154,7 +148,7 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:data, proc { |records| records.each { |record| results << record } })
+          set_hook(:data, &proc { |records| records.each { |record| results << record } })
 
         @results = results
 

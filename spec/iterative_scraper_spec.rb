@@ -78,7 +78,7 @@ describe IterativeScraper do
         new("http://whatever.net/search-stuff").
         set_iteration(:p, iteration_proc).
         loop_on(".whatever").
-        set_hook(:data, proc { iteration_count += 1 }).
+        set_hook(:data, &proc { iteration_count += 1 }).
         run()
 
       @iteration_count = iteration_count
