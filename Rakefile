@@ -12,7 +12,7 @@ def new_release
 end
 
 
-task :make_release => [:update_gemspec, :commit, :tag_release, :github_push, :make_gem, :push_gem] do
+task :make_release => [:update_gemspec, :commit, :tag_release, :github_push, :build_gem, :push_gem] do
   puts "done :)"
 end
 
@@ -34,7 +34,7 @@ task :update_gemspec do
 end
 
 task :commit do
-  `git add extraloop.gemspec && git commit -m "Updated gemspec for new release: #{new_release}"`
+  `git add extraloop.gemspec && git commit -m "Updated gemspec for new release: #{new_release.join('.')}"`
 end
 
 
@@ -45,4 +45,12 @@ end
 task :github_push do
   `git push origin master`
   `git push origin master --tags`
+end
+
+task :build_gem do
+  `gem build extraloop.gemspec`
+end
+
+task :push_gem do
+  `gem push extraloop-#{new_release.join('.')}.gem`
 end
