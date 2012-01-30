@@ -89,8 +89,8 @@ module ExtraLoop
     # Returns itself.
     #
 
-    def set_iteration(param, *args)
-      #TODO: allow passing ranges as well as arrays
+    def set_iteration(param, *args, &block)
+      args << block if block
       if args.first.respond_to?(:map)
         @iteration_set = Array(args.first).map &:to_s
       else
@@ -110,7 +110,8 @@ module ExtraLoop
     #
     # Returns itself.
 
-    def continue_with(param, *extractor_args)
+    def continue_with(param, *extractor_args, &block)
+      extractor_args << block if block
       raise Exceptions::NonGetAsyncRequestNotYetImplemented.new "the #continue_with method currently requires the 'async' option to be set to false" if @options[:async]
 
       @continue_clause_args = extractor_args

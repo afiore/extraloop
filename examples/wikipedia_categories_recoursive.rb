@@ -29,7 +29,9 @@ class WikipediaCategoryScraper < ExtraLoop::IterativeScraper
       :format => :json,
       :log => false
     }
-    request_arguments = { :params => params }
+    request_arguments = { :params => params, :headers => {
+      "User-Agent" => "ExtraLoop - ruby data extraction toolkit: http://github.com/afiore/extraloop"
+    }}
 
     super(@@api_url, options, request_arguments)
 
@@ -38,17 +40,16 @@ class WikipediaCategoryScraper < ExtraLoop::IterativeScraper
       extract(:ns).
       extract(:type).
       extract(:timestamp).
-    on(:data, proc { |results|
+    on(:data) do |results|
       puts "#{"\t" * (@options[:depth] - 2).abs }  #{@scraper.request_arguments[:params][:cmtitle]}"
       categories = results.select{ |record| record.ns === 14  }.each { |category| results.delete(category) }
-
 
       categories.each do |record|
         # Instanciate a sub scraper if the current depth is greater than zero and the category member is a sub category.
         WikipediaCategoryScraper.new(record.title, @options[:depth] - 1, @scraper.request_arguments[:params][:cmtitle] ).run unless @options[:depth] <= 0
       end
 
-    }).
+    end.
     continue_with(:cmcontinue, ['query-continue', 'categorymembers', 'cmcontinue'])
   end
 end

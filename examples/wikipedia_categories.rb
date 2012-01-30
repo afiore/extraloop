@@ -23,7 +23,9 @@ options = {
     :log_level => :info
   }
 }
-request_arguments = { :params => params }
+request_arguments = { :params => params, :headers => {
+  "User-Agent" => "ExtraLoop - ruby data extraction toolkit: http://github.com/afiore/extraloop"
+}}
 
 
 #
@@ -39,9 +41,9 @@ ExtraLoop::IterativeScraper.new(api_url, options, request_arguments).
     extract(:ns).
     extract(:type).
     extract(:timestamp).
-  on(:data, proc { |results|
+  on(:data) do |results|
     results.each { |record| all_results << record }
-  }).
+  end.
   continue_with(:cmcontinue, ['query-continue', 'categorymembers', 'cmcontinue']).
   run()
 
