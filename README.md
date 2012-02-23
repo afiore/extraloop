@@ -71,7 +71,7 @@ method extracts a specific piece of information from an element (e.g. a story's 
     loop_on('div.post') { |posts| posts.reject { |post| post.attr(:class) == 'sticky' } }
 
 Both the `loop_on` and the `extract` methods may be called with a selector, a block or a combination of the two. By default, when parsing DOM documents, `extract` will call
-`Nokogiri::XML::Node#text()`. Alternatively, `extract` also accepts an attribute name and block, this will be evaluated in the context of the current iteration element. 
+`Nokogiri::XML::Node#text()`. Alternatively, `extract` also accepts an attribute name and a block. The latter is evaluated in the context of the current iteration's element. 
 
     # extract a story's title 
     extract(:title, 'h3')
@@ -82,13 +82,13 @@ Both the `loop_on` and the `extract` methods may be called with a selector, a bl
     # extract a description text, separating paragraphs with newlines 
     extract(:description, "div.description") { |node| node.css("p").map(&:text).join("\n") }
 
-#### Extracting from JSON Documents
+#### Extracting data from JSON Documents
 
-While processing each HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at 
+While processing an HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at 
 the `ContentType` header sent by the server. This value can be overriden by providing a `:format` key in the scraper's 
 initialization options. When format is JSON, the document is parsed using the `yajl` JSON parser and converted into a hash. 
-In this case, both the `loop_on` and the `extract` methods still behave as illustrated above, except for the  
-CSS3/XPath selectors, which are specific to DOM documents. 
+In this case, both the `loop_on` and the `extract` methods still behave as illustrated above, except it does not support 
+CSS3/XPath selectors.
 
 When working with JSON data, you can just use a block and have it return the document elements you want to loop on.
 
@@ -98,7 +98,7 @@ When working with JSON data, you can just use a block and have it return the doc
 Alternatively, the same loop can be defined by passing an array of keys pointing at a hash value located 
 at several levels of depth down into the parsed document structure.
 
-    # Fetch the same document portion above using a hash path
+    # Same as above, using a hash path
     loop_on(['query', 'categorymembers'])
 
 When fetching fields from a JSON document fragment, `extract` will often not need a block or an array of keys. If called with only
@@ -120,19 +120,17 @@ one argument, it will in fact try to fetch a hash value using the provided field
 
 The `IterativeScraper` class comes with two methods that allow scrapers to loop over paginated content.
 
-    set_iteration(iteration_parameter, array_range_or_block)
+#### set\_iteration
 
 * __iteration_parameter__ - A symbol identifying the request parameter that the scraper will use as offset in order to iterate over the paginated content.
 * __array_or_range_or_block__ - Either an explicit set of values or a block of code. If provided, the block is called with the parsed document object as its first argument. The block should return a non empty array, which will determine the value of the offset parameter during each iteration. If the block fails to return a non empty array, the iteration stops.
 
+#### continue\_with
 
-The second iteration methods, `#continue_with`, allows to continue iterating untill an arbitrary block of code returns a positive, non-nil value (to be assigned to the iteration parameter).
-
-    continue_with(iteration_parameter, &block)
+The second iteration method, `#continue_with`, allows to continue an interation as long as a block of code returns a truthy, non-nil value (to be assigned to the iteration parameter).
 
 * __iteration_parameter__ - the scraper' iteration parameter.
 * __&block__ - An arbitrary block of ruby code, its return value will be used to determine the value of the next iteration's offset parameter.
-
 
 ### Running tests
 
