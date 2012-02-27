@@ -12,7 +12,6 @@ describe ScraperBase do
     @scraper = ScraperBase.new("http://localhost/fixture")
   end
 
-
   describe "#loop_on" do
     subject { @scraper.loop_on("bla.bla") }
     it { should be_an_instance_of(ScraperBase) }
@@ -113,7 +112,7 @@ describe ScraperBase do
         stub(@fake_loop).environment { ExtractionEnvironment.new }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(3) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(Nokogiri::HTML::Document), is_a(Hash), is_a(ScraperBase)).times(3) { @fake_loop  }
       end
 
 
@@ -157,9 +156,8 @@ describe ScraperBase do
         stub(@fake_loop).environment { ExtractionEnvironment.new }
         stub(@fake_loop).records { Array(1..3).map { |n| Object.new } }
 
-        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(String), is_a(Hash), is_a(ScraperBase)).times(@urls.size) { @fake_loop  }
+        mock(ExtractionLoop).new(is_a(DomExtractor), is_a(Array), is_a(Nokogiri::HTML::Document), is_a(Hash), is_a(ScraperBase)).times(@urls.size) { @fake_loop  }
       end
-
 
       it "Should handle response" do
         @scraper.run
@@ -168,5 +166,4 @@ describe ScraperBase do
       end
     end
   end
-
 end

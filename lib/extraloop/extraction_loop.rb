@@ -12,7 +12,7 @@ module ExtraLoop
     def initialize(loop_extractor, extractors=[], document=nil, hooks = {}, scraper = nil)
       @loop_extractor = loop_extractor
       @extractors = extractors
-      @document = @loop_extractor.parse(document)
+      @document = document.is_a?(String) ? @loop_extractor.parse(document) : document
       @records = []
       @hooks = hooks
       @environment = ExtractionEnvironment.new(scraper, @document, @records)

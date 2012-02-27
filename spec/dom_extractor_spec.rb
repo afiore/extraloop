@@ -54,17 +54,31 @@ describe DomExtractor do
     end
   end
 
-  context "when a selector and a block is provided" do
+  context "when a selector and a block is provided", :bla => true do
     before do
+      document_defined = scraper_defined = false
+
       @extractor = DomExtractor.new(:anchor, @env, "p a", proc { |node|
+        document_defined = @document && @document.is_a?(Nokogiri::HTML::Document)
+        scraper_defined = instance_variable_defined? "@scraper"
         node.text.gsub("dummy", "fancy")
       })
+
       @node = @extractor.parse(@html)
+      @output = @extractor.extract_field(@node)
+
+      @scraper_defined = scraper_defined
+      @document_defined = document_defined
     end
 
     describe "#extract_field" do
-      subject { @extractor.extract_field(@node) }
-      it { should match(/my fancy/) }
+      it "should return the block output" do
+        @output.should match(/my\sfancy/)
+      end
+      it "should add the @scraper and @document instance variables to the extraction environment" do
+        @scraper_defined.should be_true
+        @document_defined.should be_true
+      end
     end
   end
 
@@ -93,6 +107,7 @@ describe DomExtractor do
     end
   end
 
+
   context "when nothing but a field name is provided" do
     before do
       @extractor = DomExtractor.new(:url, @env)
@@ -117,13 +132,25 @@ describe DomExtractor do
 
     context "block provided" do
       before do
-        @extractor = DomExtractor.new(nil, @env, "div.entry", lambda { |nodeList|
+        document_defined = scraper_defined = false
+
+        @extractor = DomExtractor.new(nil, @env, "div.entry", proc { |nodeList|
+          document_defined = @document && @document.is_a?(Nokogiri::HTML::Document)
+          scraper_defined = instance_variable_defined? "@scraper"
+
           nodeList.reject {|node| node.attr(:class).split(" ").include?('exclude')  }
         })
+
+        @output = @extractor.extract_list(@html)
+        @scraper_defined = scraper_defined
+        @document_defined = document_defined
       end
 
-      subject { @extractor.extract_list(@html) }
-      it { subject.should have(2).items }
+      it { @output.should have(2).items }
+      it "should add @scraper and @document instance variables to the ExtractionEnvironment instance" do
+        @scraper_defined.should be_true
+        @document_defined.should be_true
+      end
     end
   end
 

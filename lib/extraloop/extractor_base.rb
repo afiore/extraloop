@@ -1,5 +1,5 @@
 module ExtraLoop
-  # Pseudo Abstract class.
+  # Pseudo Abstract class from which all extractors inherit.
   # This should not be called directly
   #
   class ExtractorBase
@@ -9,8 +9,9 @@ module ExtraLoop
     end
 
     attr_reader :field_name
+
     #
-    # Public: Initializes a Data extractor.
+    # Public: Initialises a Data extractor.
     #
     # Parameters:
     #   field_name  - The machine readable field name

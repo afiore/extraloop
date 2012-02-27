@@ -11,7 +11,7 @@ module ExtraLoop
 
     def extract_field(node, record=nil)
       target = node = node.respond_to?(:document) ? node : parse(node)
-      target = node.at_css(@selector)  if @selector
+      target = node.at(@selector)  if @selector
       target = target.attr(@attribute) if target.respond_to?(:attr) && @attribute
       target = @environment.run(target, record, &@callback) if @callback
 
@@ -30,7 +30,7 @@ module ExtraLoop
     #
 
     def extract_list(input)
-      nodes = input.respond_to?(:document) ? input : parse(input)
+      nodes = (input.respond_to?(:document) ? input : parse(input))
       nodes = nodes.search(@selector) if @selector
       @callback && Array(@environment.run(nodes, &@callback)) || nodes
     end

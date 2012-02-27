@@ -7,6 +7,7 @@ module ExtraLoop
     attr_reader :scraper
 
     def initialize(scraper=nil, document=nil, records=nil)
+
       if scraper
         @options  = scraper.options
         @results  = scraper.results

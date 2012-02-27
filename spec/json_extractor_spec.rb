@@ -37,12 +37,27 @@ describe JsonExtractor do
 
     context "field_name and callback" do
       before do
-        @extractor = JsonExtractor.new(:from_user, @env, proc { |node| node['from_user_name'] } )
+        scraper_defined = document_defined = false
+
+        @extractor = JsonExtractor.new(:from_user, @env, proc { |node| 
+          document_defined = @document && @document.is_a?(Hash)
+          scraper_defined = instance_variable_defined? "@scraper"
+
+          node['from_user_name']
+        })
+
         @node = @extractor.parse(@json)['results'].first
+        @output = @extractor.extract_field(@node)
+
+        @scraper_defined = scraper_defined
+        @document_defined = document_defined
       end
 
-      subject { @extractor.extract_field(@node) }
-      it { should eql("Ludovic kohn") }
+      it { @output.should eql("Ludovic kohn") }
+      it "should add the @scraper and @document instance variables to the extraction environment" do
+        @scraper_defined.should be_true
+        @document_defined.should be_true
+      end
     end
 
     context "field_name and attribute" do
@@ -108,12 +123,27 @@ describe JsonExtractor do
 
     context "with pre-parsed input" do
       before do
-        @extractor = JsonExtractor.new(nil, @env, proc { |data| data['results'] })
+        document_defined = scraper_defined = false
+
+        @extractor = JsonExtractor.new(nil, @env, proc { |data| 
+          document_defined = @document && @document.is_a?(Hash)
+          scraper_defined = instance_variable_defined? "@scraper"
+          data['results'] 
+        })
+
+
+        @output = @extractor.extract_list((Yajl::Parser.new).parse(@json))
+        @scraper_defined = scraper_defined
+        @document_defined = document_defined
       end
 
-      subject { @extractor.extract_list((Yajl::Parser.new).parse(@json)) }
-      it { subject.size.should eql(15) }
-      it { should be_an_instance_of(Array) }
+      it { @output.size.should eql(15) }
+      it { @output.should be_an_instance_of(Array) }
+
+      it "should add the @scraper and @document instance variables to the extraction environment" do
+        @scraper_defined.should be_true
+        @document_defined.should be_true
+      end
     end
 
   end

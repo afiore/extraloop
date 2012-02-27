@@ -20,12 +20,8 @@ module ExtraLoop
     end
 
     def extract_list(input)
-      #TODO: implement more clever stuff here after looking 
-      # into possible hash traversal techniques
-
-      input = input.is_a?(String) ? parse(input) : input
+      @environment.document = input = (input.is_a?(String) ? parse(input) : input)
       input = input.get_in(@path) if @path
-
       @callback && Array(@environment.run(input, &@callback)) || input
     end
 

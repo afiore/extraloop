@@ -61,7 +61,8 @@ module ExtraLoop
 
     def loop_on(*args, &block)
       args << block if block
-      @loop_extractor_args = args.insert(0, nil, ExtractionEnvironment.new(self))
+      # we prepend a nil value, as the loop extractor does not need to specify a field name
+      @loop_extractor_args = args.insert(0, nil)
       self
     end
 
@@ -79,7 +80,7 @@ module ExtraLoop
 
     def extract(*args, &block)
       args << block if block
-      @extractor_args << args.insert(1, ExtractionEnvironment.new(self))
+      @extractor_args << args
       self
     end
 
@@ -148,20 +149,37 @@ module ExtraLoop
 
       @environment = @loop.environment
       run_hook(:data, [@loop.records, response])
+      #TODO: add hock for scraper completion (useful in iterative scrapes).
     end
 
     def prepare_loop(response)
-      format = @options[:format] || detect_format(response.headers_hash.fetch('Content-Type', nil))
-      extractor_class = format == :json ? JsonExtractor : DomExtractor
+      content_type = response.headers_hash.fetch('Content-Type', nil)
+      format = @options[:format] || detect_format(content_type)
+
+      extractor_classname = "#{format.capitalize}Extractor"
+      extractor_class = Object.const_defined?(extractor_classname) && Object.const_get(extractor_classname) || DomExtractor
+
+      @loop_extractor_args.insert(1, ExtractionEnvironment.new(self))
       loop_extractor = extractor_class.new(*@loop_extractor_args)
-      extractors = @extractor_args.map { |args|  extractor_class.new(*args) }
-      ExtractionLoop.new(loop_extractor, extractors, response.body, @hooks, self)
+
+      # There is no point in parsing response.body more than once, so we reuse
+      # the first parsed document
+      document = loop_extractor.parse(response.body)
+
+      extractors = @extractor_args.map do |args|
+        args.insert(1, ExtractionEnvironment.new(self, document))
+        extractor_class.new(*args)
+      end
+
+      ExtractionLoop.new(loop_extractor, extractors, document, @hooks, self)
     end
 
     def detect_format(content_type)
       #TODO: add support for xml/rdf documents
       if content_type && content_type =~ /json$/
         :json
+      elsif content_type && content_type =~ /(csv)|(comma-separated-values)$/
+        :csv
       else
         :html
       end
