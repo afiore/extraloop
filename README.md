@@ -1,6 +1,6 @@
 # Extra Loop
 
-A Ruby library for extracting data from websites and web based APIs. 
+A Ruby library for extracting structured data from websites and web based APIs. 
 Supports most common document formats (i.e. HTML, XML, and JSON), and comes with a handy mechanism 
 for iterating over paginated datasets.
 
@@ -47,7 +47,7 @@ An iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 #### scraper options:
 
-* __format__ - Specifies the scraped document format (valid values are :html, :xml, :json). 
+* __format__ - Specifies the scraped document format; needed if the Content-Type in the server response is not the correct one. So far, the following formats are supported: 'html', 'xml', 'json', 'csv'. 
 * __async__ - Specifies whether the scraper's HTTP requests should be run in parallel or in series (defaults to false). **Note:** currently only GET requests can be run asynchronously.
 * __log__ - Logging options hash:
      * __loglevel__  - a symbol specifying the desired log level (defaults to `:info`).
@@ -138,3 +138,4 @@ ExtraLoop uses `rspec` and `rr` as its testing framework. The test suite can be 
 
     cd spec
     rspec *
+    
