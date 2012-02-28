@@ -47,7 +47,7 @@ An iterative Scraper that fetches URL, title, and publisher from some 110 Google
 
 #### scraper options:
 
-* __format__ - Specifies the scraped document format; needed only if the Content-Type in the server response is not the correct one. Supported formats are: 'html', 'xml', 'json', 'csv'. 
+* __format__ - Specifies the scraped document format; needed only if the Content-Type in the server response is not the correct one. Supported formats are: 'html', 'xml', 'json', and 'csv'. 
 * __async__ - Specifies whether the scraper's HTTP requests should be run in parallel or in series (defaults to false). **Note:** currently only GET requests can be run asynchronously.
 * __log__ - Logging options hash:
      * __loglevel__  - a symbol specifying the desired log level (defaults to `:info`).
