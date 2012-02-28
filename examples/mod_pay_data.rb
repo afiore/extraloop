@@ -1,6 +1,5 @@
 #
-# Fetch name, job title, and actual pay ceiling from a csv dataset containing UK Ministry of Defence's organogram and staff pay data
-#
+# Fetches name, job title, and actual pay ceiling from a CSV dataset listing UK Ministry of Defence's organogram and staff pay data
 # source: http://data.gov.uk/dataset/staff-organograms-and-pay-mod
 #
 
@@ -22,11 +21,11 @@ class ModPayScraper < ExtraLoop::ScraperBase
     extract :pay, 14
 
     on("data") do |records| 
-
-      records.sort { |r1, r2| r2.pay <=> r1.pay }.each { |record| puts [record.pay, record.name].map { |string| string.ljust 7 }.join }
+      records.
+        sort { |r1, r2| r2.pay <=> r1.pay }.
+        each { |record| puts [record.pay, record.name].map { |string| string.ljust 7 }.join }
     end
   end
 end
-
 
 ModPayScraper.new.run
