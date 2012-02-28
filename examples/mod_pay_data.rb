@@ -11,7 +11,8 @@ class ModPayScraper < ExtraLoop::ScraperBase
     dataset_url = "http://www.mod.uk/NR/rdonlyres/FF9761D8-2AB9-4CD4-88BC-983A46A0CD90/0/20111208CTLBOrganogramFinal7Useniordata.csv"
     super dataset_url, :format => :csv
 
-    # Select only record of officiers who earn more than 100k per year
+    # Select only records of officers earning more than 100k per year
+    
     loop_on do |rows|
       rows[1..-1].select { |row| row[14].to_i > 100000 }
     end
