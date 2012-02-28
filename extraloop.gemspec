@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency('rspec', "~> 2.7.0")
   s.add_development_dependency('rr', "~> 1.0.4")
-  s.add_development_dependency('pry', "~> 0.9.7.4")
+  s.add_development_dependency('pry-nav', "~> 0.1.0")
   
   # = MANIFEST =
   s.files = %w[

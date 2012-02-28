@@ -32,7 +32,7 @@ module ExtraLoop
     def extract_list(input)
       nodes = (input.respond_to?(:document) ? input : parse(input))
       nodes = nodes.search(@selector) if @selector
-      @callback && Array(@environment.run(nodes, &@callback)) || nodes
+      Array(@callback && @environment.run(nodes, &@callback) || nodes)
     end
 
     def parse(input)

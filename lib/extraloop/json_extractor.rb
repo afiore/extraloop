@@ -22,7 +22,7 @@ module ExtraLoop
     def extract_list(input)
       @environment.document = input = (input.is_a?(String) ? parse(input) : input)
       input = input.get_in(@path) if @path
-      @callback && Array(@environment.run(input, &@callback)) || input
+      @callback && @environment.run(input, &@callback) || input
     end
 
     def parse(input)

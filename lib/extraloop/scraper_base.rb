@@ -145,8 +145,8 @@ module ExtraLoop
       @response_count += 1
       @loop = prepare_loop(response)
       log("response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}")
-      @loop.run
 
+      @loop.run
       @environment = @loop.environment
       run_hook(:data, [@loop.records, response])
       #TODO: add hock for scraper completion (useful in iterative scrapes).
@@ -156,14 +156,15 @@ module ExtraLoop
       content_type = response.headers_hash.fetch('Content-Type', nil)
       format = @options[:format] || detect_format(content_type)
 
-      extractor_classname = "#{format.capitalize}Extractor"
-      extractor_class = Object.const_defined?(extractor_classname) && Object.const_get(extractor_classname) || DomExtractor
+      extractor_classname = "#{format.to_s.capitalize}Extractor"
+      extractor_class = ExtraLoop.const_defined?(extractor_classname) && ExtraLoop.const_get(extractor_classname) || DomExtractor
 
       @loop_extractor_args.insert(1, ExtractionEnvironment.new(self))
       loop_extractor = extractor_class.new(*@loop_extractor_args)
 
       # There is no point in parsing response.body more than once, so we reuse
       # the first parsed document
+
       document = loop_extractor.parse(response.body)
 
       extractors = @extractor_args.map do |args|

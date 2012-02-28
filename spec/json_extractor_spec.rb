@@ -10,6 +10,7 @@ describe JsonExtractor do
       content = file.read
       file.close
       content
+
     }.call()
   end
 

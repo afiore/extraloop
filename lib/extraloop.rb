@@ -16,6 +16,8 @@ gem "typhoeus"
 gem "logging"
 
 
+
+autoload :CSV,      "csv"
 autoload :Nokogiri, "nokogiri"
 autoload :Yajl,     "yajl"
 autoload :Typhoeus, "typhoeus"
@@ -29,6 +31,7 @@ ExtraLoop.autoload :ExtractionEnvironment , "#{base_path}/extraction_environment
 ExtraLoop.autoload :ExtractorBase         , "#{base_path}/extractor_base"
 ExtraLoop.autoload :DomExtractor          , "#{base_path}/dom_extractor"
 ExtraLoop.autoload :JsonExtractor         , "#{base_path}/json_extractor"
+ExtraLoop.autoload :CsvExtractor          , "#{base_path}/csv_extractor"
 ExtraLoop.autoload :ExtractionLoop        , "#{base_path}/extraction_loop"
 ExtraLoop.autoload :ScraperBase           , "#{base_path}/scraper_base"
 ExtraLoop.autoload :Loggable              , "#{base_path}/loggable"
