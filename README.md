@@ -4,11 +4,11 @@ A Ruby library for extracting structured data from websites and web based APIs.
 Supports most common document formats (i.e. HTML, XML, CSV, and JSON), and comes with a handy mechanism 
 for iterating over paginated datasets.
 
-### Installation:
+## Installation:
 
     gem install extraloop
 
-### Sample scrapers:
+## Usage:
 
 A basic scraper that fetches the top 25 websites from [Alexa's daily top 100](www.alexa.com/topsites) list:
 
@@ -37,7 +37,7 @@ An iterative Scraper that fetches URL, title, and publisher from some 110 Google
       run()
 
 
-### Scraper initialisation signature
+## Scraper initialisation signature
 
     #new(urls, scraper_options, http_options)
 
@@ -45,7 +45,7 @@ An iterative Scraper that fetches URL, title, and publisher from some 110 Google
 - __scraper_options__ - hash of scraper options (see below).
 - __http_options__ - hash of request options for `Typheous::Request#initialize` (see [API documentation](http://rubydoc.info/github/pauldix/typhoeus/master/Typhoeus/Request#initialize-instance_method) for details).
 
-#### scraper options:
+### scraper options:
 
 * __format__ - Specifies the scraped document format; needed only if the Content-Type in the server response is not the correct one. Supported formats are: 'html', 'xml', 'json', and 'csv'. 
 * __async__ - Specifies whether the scraper's HTTP requests should be run in parallel or in series (defaults to false). **Note:** currently only GET requests can be run asynchronously.
@@ -53,7 +53,7 @@ An iterative Scraper that fetches URL, title, and publisher from some 110 Google
      * __loglevel__  - a symbol specifying the desired log level (defaults to `:info`).
      * __appenders__ - a list of Logging.appenders object (defaults to `Logging.appenders.sterr`).
 
-### Extractors
+## Extractors
 
 ExtraLoop allows to fetch structured data from online documents by looping through a list of elements matching a given selector.
 For each matched element, an arbitrary set of fields can be extracted. While the `loop_on` method sets up such loop, the `extract` 
@@ -82,7 +82,7 @@ Both the `loop_on` and the `extract` methods may be called with a selector, a bl
     # extract a description text, separating paragraphs with newlines 
     extract(:description, "div.description") { |node| node.css("p").map(&:text).join("\n") }
 
-#### Extracting data from JSON Documents
+### Extracting data from JSON Documents
 
 While processing an HTTP response, ExtraLoop tries to automatically detect the scraped document format by looking at 
 the `ContentType` header sent by the server. This value can be overriden by providing a `:format` key in the scraper's 
@@ -116,23 +116,23 @@ one argument, it will in fact try to fetch a hash value using the provided field
     # => "johndoe"
 
 
-### Iteration methods
+## Iteration methods
 
 The `IterativeScraper` class comes with two methods that allow scrapers to loop over paginated content.
 
-#### set\_iteration
+### set\_iteration
 
 * __iteration_parameter__ - A symbol identifying the request parameter that the scraper will use as offset in order to iterate over the paginated content.
 * __array_or_range_or_block__ - Either an explicit set of values or a block of code. If provided, the block is called with the parsed document object as its first argument. The block should return a non empty array, which will determine the value of the offset parameter during each iteration. If the block fails to return a non empty array, the iteration stops.
 
-#### continue\_with
+### continue\_with
 
 The second iteration method, `#continue_with`, allows to continue an interation as long as a block of code returns a truthy, non-nil value (to be assigned to the iteration parameter).
 
 * __iteration_parameter__ - the scraper' iteration parameter.
 * __&block__ - An arbitrary block of ruby code, its return value will be used to determine the value of the next iteration's offset parameter.
 
-### Running tests
+## Running tests
 
 ExtraLoop uses `rspec` and `rr` as its testing framework. The test suite can be run by calling the `rspec` executable from within the `spec` directory:
 
