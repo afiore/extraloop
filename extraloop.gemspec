@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = 'extraloop'
 
   s.summary     = "A toolkit for online data extraction."
-  s.description = "A Ruby library for extracting data from websites and web based APIs. Supports most common document formats (i.e. HTML, XML, and JSON), and comes with a handy mechanism  for iterating over paginated datasets."
+  s.description = "A Ruby library for extracting data from websites and web based APIs. Supports most common document formats (i.e. HTML, XML, CSV, and JSON), and comes with a handy mechanism  for iterating over paginated datasets."
 
   s.authors  = ["Andrea Fiore"]
   s.email    = 'andrea.giulio.fiore@googlemail.com'
