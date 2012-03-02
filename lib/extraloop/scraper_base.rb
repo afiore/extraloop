@@ -23,7 +23,7 @@ module ExtraLoop
 
     def initialize(urls, options = {}, arguments = {})
       @urls = Array(urls)
-      @loop_extractor_args = nil
+      @loop_extractor_args = []
       @extractor_args = []
       @loop = nil
 
@@ -129,6 +129,9 @@ module ExtraLoop
       end
 
       log("queueing url: #{url}, params #{arguments[:params]}", :debug)
+
+      
+
       @queued_count += 1
       @hydra.queue(request)
     end
@@ -147,6 +150,7 @@ module ExtraLoop
       log("response ##{@response_count} of #{@queued_count}, status code: [#{response.code}], URL fragment: ...#{response.effective_url.split('/').last if response.effective_url}")
 
       @loop.run
+
       @environment = @loop.environment
       run_hook(:data, [@loop.records, response])
       #TODO: add hock for scraper completion (useful in iterative scrapes).
@@ -158,6 +162,7 @@ module ExtraLoop
 
       extractor_classname = "#{format.to_s.capitalize}Extractor"
       extractor_class = ExtraLoop.const_defined?(extractor_classname) && ExtraLoop.const_get(extractor_classname) || DomExtractor
+
 
       @loop_extractor_args.insert(1, ExtractionEnvironment.new(self))
       loop_extractor = extractor_class.new(*@loop_extractor_args)

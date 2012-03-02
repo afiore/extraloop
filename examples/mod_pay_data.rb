@@ -23,7 +23,7 @@ class ModPayScraper < ExtraLoop::ScraperBase
 
     on("data") do |records| 
       records.
-        sort { |r1, r2| r2.pay <=> r1.pay }.
+        sort { |r1, r2| r2.pay.to_i <=> r1.pay.to_i }.
         each { |record| puts [record.pay, record.name].map { |string| string.ljust 7 }.join }
     end
   end

@@ -69,14 +69,15 @@ describe ScraperBase do
           loop_on("ul li.file a").
             extract(:url, :href).
             extract(:filename).
-          set_hook(:data, &proc { |records| records.each { |record| results << record }})
+          on(:data) { |records| results = records }.
+          run
 
         @results = results
+
       end
 
 
       it "Should handle response" do
-        @scraper.run
         @results.should_not be_empty
         @results.all? { |record| record.extracted_at && record.url && record.filename }.should be_true
       end
@@ -166,4 +167,29 @@ describe ScraperBase do
       end
     end
   end
+
+  context "no loop defined.." do
+    describe "#run", :thisonly => true do
+      before do
+        data = []
+        @url = "http://localhost/fixture"
+
+        stub_http({}, :body => @fixture_doc) do |hydra, request, response|
+          hydra.stub(:get, request.url).and_return(response)
+        end
+
+        (ScraperBase.new @url).
+          extract(:url, "a[href]", :href).
+          on("data") { |records| data = records }.
+          run
+
+        @data = data
+      end
+
+      it "should run and extract data" do
+        @data.should_not be_empty
+      end
+    end
+  end
+
 end
