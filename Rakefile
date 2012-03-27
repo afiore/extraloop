@@ -69,6 +69,6 @@ task :push_gem do
 end
 
 desc "Automatically builds a new gem version and pushes it to rubygems.org"
-task :make_release => [:update_gemspec, :commit, :build_gem, :push_gem, :tag_release, :github_push] do
+task :default => [:update_gemspec, :commit, :build_gem, :push_gem, :tag_release, :github_push] do
   puts "done :)"
 end
