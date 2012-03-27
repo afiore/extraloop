@@ -1,7 +1,7 @@
 base_path = File.expand_path(File.dirname(__FILE__) + "/extraloop"  )
 
 module ExtraLoop
-  VERSION = '0.0.3'
+  VERSION = '0.0.8'
 end
 
 

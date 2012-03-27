@@ -18,10 +18,6 @@ params = {
 
 options = {
   :format => :json,
-  :log => {
-    :appenders => [Logging.appenders.stderr],
-    :log_level => :info
-  }
 }
 request_arguments = { :params => params, :headers => {
   "User-Agent" => "ExtraLoop - ruby data extraction toolkit: http://github.com/afiore/extraloop"

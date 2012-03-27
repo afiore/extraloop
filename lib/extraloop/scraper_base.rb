@@ -61,8 +61,8 @@ module ExtraLoop
 
     def loop_on(*args, &block)
       args << block if block
-      # we prepend a nil value, as the loop extractor does not need to specify a field name
-      @loop_extractor_args = args.insert(0, nil)
+      # prepend placeholder values for loop name and extraction environment
+      @loop_extractor_args = args.insert(0, nil, nil)
       self
     end
 
@@ -164,7 +164,9 @@ module ExtraLoop
       extractor_class = ExtraLoop.const_defined?(extractor_classname) && ExtraLoop.const_get(extractor_classname) || DomExtractor
 
 
-      @loop_extractor_args.insert(1, ExtractionEnvironment.new(self))
+      #replace empty placeholder with extraction environment
+      @loop_extractor_args[1] = ExtractionEnvironment.new(self)
+
       loop_extractor = extractor_class.new(*@loop_extractor_args)
 
       # There is no point in parsing response.body more than once, so we reuse
@@ -172,8 +174,8 @@ module ExtraLoop
 
       document = loop_extractor.parse(response.body)
 
-      extractors = @extractor_args.map do |args|
-        args.insert(1, ExtractionEnvironment.new(self, document))
+      extractors = @extractor_args.map do |original_args|
+        args = original_args.clone.insert(1, ExtractionEnvironment.new(self, document))
         extractor_class.new(*args)
       end
 
