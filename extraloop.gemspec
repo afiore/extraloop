@@ -4,8 +4,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.8.10'
 
   s.name              = 'extraloop'
-  s.version           = '0.0.7'
-  s.date              = '2012-02-28'
+  s.version           = '0.0.8'
+  s.date              = '2012-03-27'
   s.rubyforge_project = 'extraloop'
 
   s.summary     = "A toolkit for online data extraction."
@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rspec', "~> 2.7.0")
   s.add_development_dependency('rr', "~> 1.0.4")
   s.add_development_dependency('pry-nav', "~> 0.1.0")
+  s.add_development_dependency('rake', "~> 0.9.2.2")
   
   # = MANIFEST =
   s.files = %w[
